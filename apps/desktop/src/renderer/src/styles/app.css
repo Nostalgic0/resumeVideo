@@ -325,6 +325,27 @@ body {
   max-width: 450px;
 }
 
+.processing-spinner {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--bg-tertiary);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .processing-title {
   font-size: 18px;
   font-weight: 600;
@@ -399,68 +420,39 @@ body {
 
 /* Activity Log */
 .activity-log {
-  margin-top: 32px;
+  margin-top: 24px;
   text-align: left;
   width: 100%;
 }
 
-.activity-log-title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-muted);
-  margin-bottom: 8px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
 .activity-log-scroll {
-  max-height: 260px;
+  max-height: 200px;
   overflow-y: auto;
   background: var(--bg-secondary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius);
-  padding: 8px;
+  padding: 6px;
 }
 
 .activity-log-entry {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 6px;
+  padding: 4px 6px;
   border-radius: 4px;
 }
 
-.activity-log-entry:hover {
-  background: var(--bg-tertiary);
-}
-
 .activity-log-dot {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--accent);
   flex-shrink: 0;
 }
 
-.activity-log-dot.success {
-  background: var(--success);
-}
-
-.activity-log-dot.error {
-  background: var(--error);
-}
-
 .activity-log-text {
-  flex: 1;
   font-size: 12px;
   color: var(--text-secondary);
-}
-
-.activity-log-pct {
-  font-size: 11px;
-  color: var(--text-muted);
-  min-width: 28px;
-  text-align: right;
 }
 
 /* Result */

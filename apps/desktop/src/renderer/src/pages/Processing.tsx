@@ -83,15 +83,11 @@ export default function Processing(): JSX.Element {
 
           {activityLog.length > 0 && (
             <div className="activity-log">
-              <h3 className="activity-log-title">Activity Log</h3>
               <div className="activity-log-scroll">
                 {activityLog.map((entry) => (
                   <div key={entry.id} className="activity-log-entry">
-                    <span
-                      className={`activity-log-dot ${entry.progress >= 100 ? 'success' : entry.step.startsWith('Error') ? 'error' : ''}`}
-                    />
+                    <span className="activity-log-dot" />
                     <span className="activity-log-text">{entry.step}</span>
-                    <span className="activity-log-pct">{entry.progress}%</span>
                   </div>
                 ))}
                 <div ref={logEndRef} />
@@ -106,7 +102,9 @@ export default function Processing(): JSX.Element {
   return (
     <div className="page processing-page">
       <div className="processing-container">
-        <h2 className="processing-title">Processing Video</h2>
+        <div className="processing-spinner">
+          <div className="spinner" />
+        </div>
 
         <div className="progress-bar-container">
           <div
@@ -131,17 +129,13 @@ export default function Processing(): JSX.Element {
           </div>
         )}
 
-        {activityLog.length > 0 && (
+        {activityLog.length > 1 && (
           <div className="activity-log">
-            <h3 className="activity-log-title">Activity Log</h3>
             <div className="activity-log-scroll">
               {activityLog.map((entry) => (
                 <div key={entry.id} className="activity-log-entry">
-                  <span
-                    className={`activity-log-dot ${entry.progress >= 100 ? 'success' : entry.step.startsWith('Error') ? 'error' : ''}`}
-                  />
+                  <span className="activity-log-dot" />
                   <span className="activity-log-text">{entry.step}</span>
-                  <span className="activity-log-pct">{entry.progress}%</span>
                 </div>
               ))}
               <div ref={logEndRef} />

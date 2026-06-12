@@ -48,6 +48,10 @@ const defaultSettings: AppSettings = {
 
 let logIdCounter = 0
 
+function isMajorProgressStep(step: string): boolean {
+  return !/^Transcribing\s+\d+/.test(step)
+}
+
 export const useStore = create<AppState>((set) => ({
   currentPage: 'home',
   settings: defaultSettings,
@@ -63,10 +67,12 @@ export const useStore = create<AppState>((set) => ({
   setProgress: (progress) =>
     set((state) => ({
       progress,
-      activityLog: [
-        ...state.activityLog,
-        { id: ++logIdCounter, step: progress.step, progress: progress.progress, timestamp: Date.now() }
-      ]
+      activityLog: isMajorProgressStep(progress.step)
+        ? [
+            ...state.activityLog,
+            { id: ++logIdCounter, step: progress.step, progress: progress.progress, timestamp: Date.now() }
+          ]
+        : state.activityLog
     })),
   setResultPath: (path) => set({ resultPath: path }),
   setError: (error) => set({ error }),
