@@ -25,7 +25,7 @@ function getAppDataPath(): string {
 const defaultSettings: AppSettings = {
   aiConfig: DEFAULT_DEEPSEEK_CONFIG,
   outputFolder: '',
-  summaryLanguage: 'auto',
+  videoLanguage: 'es',
   lastProvider: 'deepseek'
 }
 

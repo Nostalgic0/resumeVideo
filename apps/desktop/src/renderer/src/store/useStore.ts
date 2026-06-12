@@ -38,7 +38,7 @@ interface AppState {
 const defaultSettings: AppSettings = {
   aiConfig: DEFAULT_DEEPSEEK_CONFIG,
   outputFolder: '',
-  summaryLanguage: 'auto',
+  videoLanguage: 'es',
   lastProvider: 'deepseek'
 }
 

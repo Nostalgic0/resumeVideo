@@ -41,9 +41,11 @@ export const DEFAULT_OPENAI_CONFIG: AIConfig = {
   temperature: 0.3
 }
 
+export type VideoLanguage = 'es' | 'en' | 'pt' | 'fr' | 'de' | 'it' | 'auto'
+
 export interface AppSettings {
   aiConfig: AIConfig
   outputFolder: string
-  summaryLanguage: 'auto' | 'en' | 'es'
+  videoLanguage: VideoLanguage
   lastProvider: AIProvider
 }

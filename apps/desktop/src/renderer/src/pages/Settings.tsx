@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useStore } from '../store/useStore'
-import type { AppSettings, AIProvider } from '@resumevideo/core'
+import type { AppSettings, AIProvider, VideoLanguage } from '@resumevideo/core'
 import { DEFAULT_DEEPSEEK_CONFIG, DEFAULT_OPENAI_CONFIG } from '@resumevideo/core'
 
 export default function Settings(): JSX.Element {
@@ -117,21 +117,28 @@ export default function Settings(): JSX.Element {
         </div>
 
         <div className="settings-group">
-          <label className="settings-label">Summary Language</label>
+          <label className="settings-label">Video Language</label>
           <select
             className="settings-input"
-            value={localSettings.summaryLanguage}
+            value={localSettings.videoLanguage}
             onChange={(e) =>
               setLocalSettings({
                 ...localSettings,
-                summaryLanguage: e.target.value as 'auto' | 'en' | 'es'
+                videoLanguage: e.target.value as VideoLanguage
               })
             }
           >
-            <option value="auto">Same as video language (auto-detect)</option>
-            <option value="en">English</option>
             <option value="es">Spanish</option>
+            <option value="en">English</option>
+            <option value="pt">Portuguese</option>
+            <option value="fr">French</option>
+            <option value="de">German</option>
+            <option value="it">Italian</option>
+            <option value="auto">Auto-detect</option>
           </select>
+          <p className="settings-hint">
+            Choose the language spoken in the video. ResumeVideo will transcribe and summarize in this language.
+          </p>
         </div>
 
         <div className="settings-group">

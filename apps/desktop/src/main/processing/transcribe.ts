@@ -8,7 +8,16 @@ export interface TranscriptionResult {
   language: string
 }
 
-export async function transcribe(audioPath: string): Promise<TranscriptionResult> {
+export async function transcribe(
+  audioPath: string,
+  preferredLanguage: string = 'auto'
+): Promise<TranscriptionResult> {
+  if (preferredLanguage !== 'auto') {
+    console.log('[ResumeVideo] Transcribing with user-selected language:', preferredLanguage)
+    const transcript = await transcribeWithLanguage(audioPath, preferredLanguage)
+    return { transcript, language: preferredLanguage }
+  }
+
   const detectedLanguage = await detectLanguage(audioPath)
   console.log('[ResumeVideo] Detected language:', detectedLanguage)
 

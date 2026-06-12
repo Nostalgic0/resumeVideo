@@ -21,8 +21,17 @@ export async function processVideo(
     console.log('[ResumeVideo] Audio extracted:', audioPath)
     onProgress('Audio extracted', 20)
 
-    onProgress('Detecting spoken language...', 22)
-    const { transcript, language } = await transcribe(audioPath)
+    const effectiveLanguage = settings.videoLanguage
+    const isAuto = effectiveLanguage === 'auto'
+
+    if (isAuto) {
+      onProgress('Detecting spoken language...', 22)
+    } else {
+      const langName = getLanguageDisplayName(effectiveLanguage)
+      onProgress(`Transcribing in ${langName}...`, 22)
+    }
+
+    const { transcript, language } = await transcribe(audioPath, effectiveLanguage)
     const langName = getLanguageDisplayName(language)
     onProgress(`Transcription complete · ${langName}`, 60)
 
@@ -32,11 +41,11 @@ export async function processVideo(
       )
     }
 
-    const detectLanguage = settings.summaryLanguage === 'auto' ? language : settings.summaryLanguage
+    const summaryLang = language
 
     onProgress('Generating summary...', 65)
     console.log('[ResumeVideo] Generating summary with provider:', settings.aiConfig.provider)
-    const summary = await summarize(transcript, detectLanguage, settings.aiConfig)
+    const summary = await summarize(transcript, summaryLang, settings.aiConfig)
     console.log('[ResumeVideo] Summary generated - sections:', summary.sections.length)
     onProgress('Summary generated', 90)
 

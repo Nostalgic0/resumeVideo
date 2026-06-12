@@ -1,11 +1,19 @@
 import type { SummarySection } from '../ai/types'
 
+const LANG_LABELS: Record<string, { title: string; transcript: string }> = {
+  en: { title: 'Video Summary', transcript: 'Full Transcript' },
+  es: { title: 'Resumen del video', transcript: 'Transcripción completa' },
+  pt: { title: 'Resumo do vídeo', transcript: 'Transcrição completa' },
+  fr: { title: 'Résumé de la vidéo', transcript: 'Transcription complète' },
+  de: { title: 'Video-Zusammenfassung', transcript: 'Vollständige Transkription' },
+  it: { title: 'Riepilogo del video', transcript: 'Trascrizione completa' }
+}
+
 export function parseSummaryResponse(
   rawResponse: string,
-  detectedLanguage: string
+  _detectedLanguage: string
 ): SummarySection[] {
   const sections: SummarySection[] = []
-  const headingRegex = /^##\s+(.+)$/gm
   const lines = rawResponse.split('\n')
 
   let currentSection: SummarySection | null = null
@@ -16,7 +24,9 @@ export function parseSummaryResponse(
     if (match) {
       if (currentSection) {
         currentSection.content = contentLines.join('\n').trim()
-        sections.push(currentSection)
+        if (currentSection.content) {
+          sections.push(currentSection)
+        }
       }
       currentSection = { title: match[1].trim(), content: '' }
       contentLines = []
@@ -27,17 +37,14 @@ export function parseSummaryResponse(
 
   if (currentSection) {
     currentSection.content = contentLines.join('\n').trim()
-    sections.push(currentSection)
+    if (currentSection.content) {
+      sections.push(currentSection)
+    }
   }
 
   if (sections.length === 0) {
     sections.push({
-      title:
-        detectedLanguage === 'es'
-          ? 'Resumen'
-          : detectedLanguage === 'pt'
-            ? 'Resumo'
-            : 'Summary',
+      title: 'Summary',
       content: rawResponse.trim()
     })
   }
@@ -51,42 +58,17 @@ export function buildMarkdown(
   language: string,
   videoFileName: string
 ): string {
-  const titleLabel = getTitleLabel(language)
-  const transcriptLabel = getTranscriptLabel(language)
+  const labels = LANG_LABELS[language] || LANG_LABELS['en']
 
-  let md = `# ${titleLabel}: ${videoFileName}\n\n`
+  let md = `# ${labels.title}: ${videoFileName}\n\n`
 
   for (const section of sections) {
     md += `## ${section.title}\n\n${section.content}\n\n`
   }
 
-  md += `## ${transcriptLabel}\n\n${transcript}\n`
+  md += `---\n\n## ${labels.transcript}\n\n${transcript}\n`
 
   return md
-}
-
-function getTitleLabel(language: string): string {
-  const map: Record<string, string> = {
-    en: 'Video Summary',
-    es: 'Resumen del video',
-    pt: 'Resumo do vídeo',
-    fr: 'Résumé de la vidéo',
-    de: 'Video-Zusammenfassung',
-    it: 'Riepilogo del video'
-  }
-  return map[language] || 'Video Summary'
-}
-
-function getTranscriptLabel(language: string): string {
-  const map: Record<string, string> = {
-    en: 'Full Transcript',
-    es: 'Transcripción completa',
-    pt: 'Transcrição completa',
-    fr: 'Transcription complète',
-    de: 'Vollständige Transkription',
-    it: 'Trascrizione completa'
-  }
-  return map[language] || 'Full Transcript'
 }
 
 export function sanitizeFileName(name: string): string {

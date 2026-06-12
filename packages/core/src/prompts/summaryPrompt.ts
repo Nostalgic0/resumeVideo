@@ -1,46 +1,48 @@
 export function buildSummaryPrompt(
   transcript: string,
-  detectedLanguage: string
+  language: string
 ): string {
-  const languagePrompt =
-    detectedLanguage === 'auto'
-      ? 'Respond in the same language as the transcript.'
-      : `Respond in ${getLanguageName(detectedLanguage)}.`
-
-  const languageLabel = getLanguageLabel(detectedLanguage)
+  const langName = getLanguageName(language)
 
   return `You are an AI assistant that creates structured video summaries.
 
-${languagePrompt}
+Analyze the following transcript carefully.
 
-Analyze the following video transcript and return a structured summary.
+Step 1 — Identify the type of content
+Determine what this is: a work meeting, a class, a tutorial, an interview, a casual conversation, a presentation, a call, a podcast, a workshop, or something else.
 
-Use these section headings in **${languageLabel}**:
-${getSectionHeadings(detectedLanguage)}
+Step 2 — Decide which sections are useful
+Based on the content type, choose only the sections that make sense. Do NOT force every section. Leave out anything irrelevant.
 
-Rules:
-- Write everything in the same language as the transcript. Do not translate.
+Possible section types (pick only the ones that apply):
+- Overall summary or context
+- Main topics discussed
+- Key points or highlights
+- Action items or tasks assigned
+- Decisions made
+- Dates, deadlines, or milestones
+- People or roles mentioned
+- Questions raised
+- Follow-ups needed
+- Risks, blockers, or problems
+- Technical details or specifications
+- Step-by-step instructions
+- Examples given
+- Resources, tools, or links mentioned
+- Open issues or unanswered questions
+- Conclusions or next steps
+- Any other section that fits this specific content
+
+Step 3 — Write the summary
+- Write EVERYTHING in ${langName}. Do not translate to English.
+- Use "## Section Title" format for each section heading.
 - Be concise but thorough.
-- Extract action items and decisions explicitly.
-- Note any dates, deadlines, people, projects, or key topics mentioned.
-- If no action items are found, indicate that none were detected — in the same language as the transcript.
-- If no decisions are found, indicate that none were detected — in the same language as the transcript.
-- Start each section heading with "##" followed by a space.
-
----
+- If a section has no content, do NOT include it.
+- Do not write "None" or "N/A" sections — just skip them.
+- Think about what would be most useful to someone who needs to understand this content quickly.
 
 Transcript:
 ${transcript}`
-}
-
-function getSectionHeadings(language: string): string {
-  const headings = getHeadingsMap()
-
-  if (headings[language]) {
-    return headings[language].join('\n')
-  }
-
-  return headings['en'].join('\n')
 }
 
 function getLanguageName(code: string): string {
@@ -72,89 +74,4 @@ function getLanguageName(code: string): string {
     uk: 'Ukrainian'
   }
   return map[code] || code
-}
-
-function getLanguageLabel(language: string): string {
-  const map: Record<string, string> = {
-    en: 'English',
-    es: 'Spanish',
-    pt: 'Portuguese',
-    fr: 'French',
-    de: 'German',
-    it: 'Italian',
-    ja: 'Japanese',
-    ko: 'Korean',
-    zh: 'Chinese',
-    ru: 'Russian',
-    ar: 'Arabic',
-    hi: 'Hindi',
-    nl: 'Dutch',
-    pl: 'Polish',
-    tr: 'Turkish',
-    vi: 'Vietnamese',
-    th: 'Thai',
-    sv: 'Swedish',
-    da: 'Danish',
-    fi: 'Finnish',
-    no: 'Norwegian',
-    cs: 'Czech',
-    ro: 'Romanian',
-    hu: 'Hungarian',
-    uk: 'Ukrainian',
-    auto: 'the transcript language'
-  }
-  return map[language] || map['en']
-}
-
-function getHeadingsMap(): Record<string, string[]> {
-  return {
-    en: [
-      '## Executive Summary',
-      '## Key Points',
-      '## Action Items',
-      '## Decisions',
-      '## Dates and Deadlines',
-      '## People, Projects, or Topics Mentioned'
-    ],
-    es: [
-      '## Resumen ejecutivo',
-      '## Puntos importantes',
-      '## Tareas pendientes',
-      '## Decisiones tomadas',
-      '## Fechas o plazos',
-      '## Personas, proyectos o temas mencionados'
-    ],
-    pt: [
-      '## Resumo executivo',
-      '## Pontos importantes',
-      '## Tarefas pendentes',
-      '## Decisões tomadas',
-      '## Datas ou prazos',
-      '## Pessoas, projetos ou temas mencionados'
-    ],
-    fr: [
-      '## Résumé exécutif',
-      '## Points importants',
-      '## Actions à mener',
-      '## Décisions prises',
-      '## Dates et échéances',
-      '## Personnes, projets ou sujets mentionnés'
-    ],
-    de: [
-      '## Zusammenfassung',
-      '## Wichtige Punkte',
-      '## Aufgaben',
-      '## Entscheidungen',
-      '## Termine und Fristen',
-      '## Personen, Projekte oder Themen'
-    ],
-    it: [
-      '## Riepilogo esecutivo',
-      '## Punti importanti',
-      '## Azioni da intraprendere',
-      '## Decisioni prese',
-      '## Date e scadenze',
-      '## Persone, progetti o argomenti menzionati'
-    ]
-  }
 }
