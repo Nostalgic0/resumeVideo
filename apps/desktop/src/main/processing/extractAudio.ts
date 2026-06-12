@@ -1,5 +1,5 @@
 import { execFile } from 'child_process'
-import { join, basename, dirname } from 'path'
+import { join, basename } from 'path'
 import { existsSync, unlinkSync, mkdirSync } from 'fs'
 import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
@@ -44,9 +44,11 @@ export async function extractAudio(videoPath: string): Promise<string> {
 }
 
 function getFfmpegPath(): string {
+  const exeName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
+
   if (!app.isPackaged) {
     const devPaths = [
-      join(dirname(process.resourcesPath || ''), '..', 'resources', 'bin', process.platform, process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'),
+      join(__dirname, '..', '..', '..', '..', 'resources', 'bin', process.platform, exeName),
       'ffmpeg'
     ]
     for (const p of devPaths) {
@@ -57,8 +59,7 @@ function getFfmpegPath(): string {
 
   const bundledPath = join(
     process.resourcesPath || '',
-    'resources', 'bin', process.platform,
-    process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
+    'resources', 'bin', process.platform, exeName
   )
 
   if (existsSync(bundledPath)) {

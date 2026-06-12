@@ -1,5 +1,5 @@
 import { execFile } from 'child_process'
-import { join, dirname } from 'path'
+import { join } from 'path'
 import { existsSync, readFileSync } from 'fs'
 import { app } from 'electron'
 
@@ -86,7 +86,7 @@ function getWhisperPath(): string {
 
   if (!app.isPackaged) {
     const devPaths = [
-      join(dirname(process.resourcesPath || ''), '..', 'resources', 'bin', process.platform, exeName),
+      join(__dirname, '..', '..', '..', '..', 'resources', 'bin', process.platform, exeName),
       'whisper-cli',
       'whisper'
     ]
@@ -122,7 +122,7 @@ function getModelPath(): string {
 
   if (!app.isPackaged) {
     searchPaths.push(
-      join(dirname(process.resourcesPath || ''), '..', 'resources', 'models')
+      join(__dirname, '..', '..', '..', '..', 'resources', 'models')
     )
   }
 
@@ -140,7 +140,7 @@ function getModelPath(): string {
   }
 
   return join(
-    process.resourcesPath || dirname(__dirname),
+    process.resourcesPath || join(__dirname, '..', '..', '..', '..'),
     'resources', 'models', 'ggml-base.bin'
   )
 }
