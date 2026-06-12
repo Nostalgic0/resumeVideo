@@ -9,6 +9,7 @@ export interface ApiType {
   processVideo: (videoPath: string, settings: AppSettings) => Promise<string>
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<boolean>
+  getPathForFile: (file: File) => string
   onProgress: (callback: (event: ProgressEvent) => void) => () => void
   onComplete: (callback: (outputPath: string) => void) => () => void
   onError: (callback: (error: string) => void) => () => void

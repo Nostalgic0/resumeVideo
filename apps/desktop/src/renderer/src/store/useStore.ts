@@ -9,6 +9,13 @@ export interface ProgressInfo {
   progress: number
 }
 
+export interface LogEntry {
+  id: number
+  step: string
+  progress: number
+  timestamp: number
+}
+
 interface AppState {
   currentPage: Page
   settings: AppSettings
@@ -16,6 +23,7 @@ interface AppState {
   progress: ProgressInfo
   resultPath: string | null
   error: string | null
+  activityLog: LogEntry[]
 
   setPage: (page: Page) => void
   setSettings: (settings: AppSettings) => void
@@ -23,6 +31,7 @@ interface AppState {
   setProgress: (progress: ProgressInfo) => void
   setResultPath: (path: string | null) => void
   setError: (error: string | null) => void
+  addLogEntry: (step: string, progress: number) => void
   reset: () => void
 }
 
@@ -33,6 +42,8 @@ const defaultSettings: AppSettings = {
   lastProvider: 'deepseek'
 }
 
+let logIdCounter = 0
+
 export const useStore = create<AppState>((set) => ({
   currentPage: 'home',
   settings: defaultSettings,
@@ -40,18 +51,34 @@ export const useStore = create<AppState>((set) => ({
   progress: { step: '', progress: 0 },
   resultPath: null,
   error: null,
+  activityLog: [],
 
   setPage: (page) => set({ currentPage: page }),
   setSettings: (settings) => set({ settings }),
   setVideoPath: (path) => set({ videoPath: path }),
-  setProgress: (progress) => set({ progress }),
+  setProgress: (progress) =>
+    set((state) => ({
+      progress,
+      activityLog: [
+        ...state.activityLog,
+        { id: ++logIdCounter, step: progress.step, progress: progress.progress, timestamp: Date.now() }
+      ]
+    })),
   setResultPath: (path) => set({ resultPath: path }),
   setError: (error) => set({ error }),
+  addLogEntry: (step, progress) =>
+    set((state) => ({
+      activityLog: [
+        ...state.activityLog,
+        { id: ++logIdCounter, step, progress, timestamp: Date.now() }
+      ]
+    })),
   reset: () =>
     set({
       videoPath: null,
       progress: { step: '', progress: 0 },
       resultPath: null,
-      error: null
+      error: null,
+      activityLog: []
     })
 }))

@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge, ipcRenderer, webUtils } from 'electron'
 import type { AppSettings } from '@resumevideo/core'
 
 export interface ProgressEvent {
@@ -15,6 +15,7 @@ const api = {
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: AppSettings): Promise<boolean> =>
     ipcRenderer.invoke('save-settings', settings),
+  getPathForFile: (file: File): string => webUtils.getPathForFile(file),
   onProgress: (callback: (event: ProgressEvent) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: ProgressEvent): void =>
       callback(data)

@@ -16,6 +16,7 @@ export async function extractAudio(videoPath: string): Promise<string> {
   const outputPath = join(outputDir, 'audio.wav')
 
   const ffmpegPath = getFfmpegPath()
+  console.log('[ResumeVideo] Using ffmpeg:', ffmpegPath)
 
   await new Promise<void>((resolve, reject) => {
     execFile(

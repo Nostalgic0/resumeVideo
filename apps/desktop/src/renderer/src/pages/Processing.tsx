@@ -2,13 +2,26 @@ import { useEffect, useRef } from 'react'
 import { useStore } from '../store/useStore'
 
 export default function Processing(): JSX.Element {
-  const { videoPath, settings, progress, error, setProgress, setResultPath, setError, setPage } =
-    useStore()
+  const {
+    videoPath,
+    settings,
+    progress,
+    error,
+    activityLog,
+    setProgress,
+    setResultPath,
+    setError,
+    setPage,
+    addLogEntry
+  } = useStore()
   const started = useRef(false)
+  const logEndRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (started.current || !videoPath) return
-    started.current = true
+    if (!videoPath) {
+      setError('No video file was selected. Please go back and try again.')
+      return
+    }
 
     const cleanupFns: (() => void)[] = []
 
@@ -20,6 +33,7 @@ export default function Processing(): JSX.Element {
 
     cleanupFns.push(
       window.api.onComplete((outputPath) => {
+        addLogEntry('Summary saved successfully', 100)
         setResultPath(outputPath)
         setPage('result')
       })
@@ -27,13 +41,20 @@ export default function Processing(): JSX.Element {
 
     cleanupFns.push(
       window.api.onError((errorMsg) => {
+        addLogEntry(`Error: ${errorMsg}`, 0)
         setError(errorMsg)
       })
     )
 
-    window.api.processVideo(videoPath, settings).catch((err) => {
-      setError(err?.message || 'An unknown error occurred')
-    })
+    if (!started.current) {
+      started.current = true
+      addLogEntry('Starting video processing...', 0)
+      window.api.processVideo(videoPath, settings).catch((err) => {
+        const msg = err?.message || 'An unknown error occurred'
+        addLogEntry(`Error: ${msg}`, 0)
+        setError(msg)
+      })
+    }
 
     return () => {
       for (const fn of cleanupFns) {
@@ -41,6 +62,12 @@ export default function Processing(): JSX.Element {
       }
     }
   }, [videoPath])
+
+  useEffect(() => {
+    if (logEndRef.current) {
+      logEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [activityLog.length])
 
   if (error) {
     return (
@@ -53,6 +80,24 @@ export default function Processing(): JSX.Element {
               Try Again
             </button>
           </div>
+
+          {activityLog.length > 0 && (
+            <div className="activity-log">
+              <h3 className="activity-log-title">Activity Log</h3>
+              <div className="activity-log-scroll">
+                {activityLog.map((entry) => (
+                  <div key={entry.id} className="activity-log-entry">
+                    <span
+                      className={`activity-log-dot ${entry.progress >= 100 ? 'success' : entry.step.startsWith('Error') ? 'error' : ''}`}
+                    />
+                    <span className="activity-log-text">{entry.step}</span>
+                    <span className="activity-log-pct">{entry.progress}%</span>
+                  </div>
+                ))}
+                <div ref={logEndRef} />
+              </div>
+            </div>
+          )}
         </div>
       </div>
     )
@@ -72,6 +117,24 @@ export default function Processing(): JSX.Element {
 
         <p className="progress-step">{progress.step}</p>
         <p className="progress-percent">{progress.progress}%</p>
+
+        {activityLog.length > 0 && (
+          <div className="activity-log">
+            <h3 className="activity-log-title">Activity Log</h3>
+            <div className="activity-log-scroll">
+              {activityLog.map((entry) => (
+                <div key={entry.id} className="activity-log-entry">
+                  <span
+                    className={`activity-log-dot ${entry.progress >= 100 ? 'success' : entry.step.startsWith('Error') ? 'error' : ''}`}
+                  />
+                  <span className="activity-log-text">{entry.step}</span>
+                  <span className="activity-log-pct">{entry.progress}%</span>
+                </div>
+              ))}
+              <div ref={logEndRef} />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

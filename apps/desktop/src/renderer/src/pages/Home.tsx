@@ -17,6 +17,10 @@ export default function Home(): JSX.Element {
 
   const handleFileDrop = useCallback(
     (filePath: string) => {
+      if (!filePath) {
+        setError('Could not read the file path. Please use Browse Files instead.')
+        return
+      }
       if (!settings.outputFolder) {
         setError('Please configure an output folder in Settings first.')
         setPage('settings')

@@ -39,7 +39,8 @@ export default function Dropzone({ onFileDrop }: DropzoneProps): JSX.Element {
         return
       }
 
-      onFileDrop(file.path)
+      const filePath = window.api.getPathForFile(file)
+      onFileDrop(filePath)
     },
     [onFileDrop]
   )
