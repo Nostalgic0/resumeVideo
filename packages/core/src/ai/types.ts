@@ -1,0 +1,49 @@
+export type AIProvider = 'deepseek' | 'openai' | 'custom'
+
+export interface AIConfig {
+  provider: AIProvider
+  apiKey: string
+  model: string
+  baseUrl: string
+  temperature: number
+}
+
+export interface SummaryRequest {
+  transcript: string
+  detectedLanguage: string
+  config: AIConfig
+}
+
+export interface SummarySection {
+  title: string
+  content: string
+}
+
+export interface SummaryResult {
+  sections: SummarySection[]
+  detectedLanguage: string
+  rawResponse: string
+}
+
+export const DEFAULT_DEEPSEEK_CONFIG: AIConfig = {
+  provider: 'deepseek',
+  apiKey: '',
+  model: 'deepseek-chat',
+  baseUrl: 'https://api.deepseek.com/v1',
+  temperature: 0.3
+}
+
+export const DEFAULT_OPENAI_CONFIG: AIConfig = {
+  provider: 'openai',
+  apiKey: '',
+  model: 'gpt-4.1-mini',
+  baseUrl: 'https://api.openai.com/v1',
+  temperature: 0.3
+}
+
+export interface AppSettings {
+  aiConfig: AIConfig
+  outputFolder: string
+  summaryLanguage: 'auto' | 'en' | 'es'
+  lastProvider: AIProvider
+}

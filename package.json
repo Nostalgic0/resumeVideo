@@ -1,0 +1,15 @@
+{
+  "name": "resumevideo",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @resumevideo/desktop",
+    "build": "npm run build -w @resumevideo/desktop",
+    "dist": "npm run dist -w @resumevideo/desktop",
+    "typecheck": "npm run typecheck -w @resumevideo/core & npm run typecheck -w @resumevideo/desktop"
+  }
+}

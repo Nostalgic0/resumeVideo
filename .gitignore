@@ -1,0 +1,27 @@
+node_modules/
+dist/
+out/
+build/
+*.log
+.env
+.DS_Store
+Thumbs.db
+
+# Electron build output
+apps/desktop/dist/
+
+# Binary files (too large for git)
+resources/bin/**/*.exe
+resources/bin/**/*.dll
+resources/bin/**/ffmpeg
+resources/bin/**/whisper*
+resources/models/*.bin
+resources/models/*.gguf
+
+# Output files
+outputs/*
+!outputs/.gitkeep
+
+# IDE
+.vscode/
+.idea/

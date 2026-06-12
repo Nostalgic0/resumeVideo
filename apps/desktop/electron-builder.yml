@@ -1,0 +1,32 @@
+appId: com.resumevideo.app
+productName: ResumeVideo
+directories:
+  buildResources: build
+  output: dist
+files:
+  - '!**/.vscode/*'
+  - '!src/*'
+  - '!electron.vite.config.*'
+  - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!{README.md}'
+extraResources:
+  - from: ../../resources
+    to: resources
+mac:
+  target:
+    - dmg
+  artifactName: ResumeVideo-${version}-mac.${ext}
+  category: public.app-category.utilities
+win:
+  target:
+    - nsis
+  artifactName: ResumeVideo-${version}-win.${ext}
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+linux:
+  target:
+    - AppImage
+    - deb
+  artifactName: ResumeVideo-${version}-linux.${ext}
+  category: Utility
