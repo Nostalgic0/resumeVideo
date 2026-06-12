@@ -21,16 +21,16 @@ export async function processVideo(
     console.log('[ResumeVideo] Audio extracted:', audioPath)
     onProgress('Audio extracted', 20)
 
-    onProgress('Transcribing audio...', 25)
-    console.log('[ResumeVideo] Transcribing audio...')
+    onProgress('Detecting spoken language...', 22)
     const { transcript, language } = await transcribe(audioPath)
-    console.log('[ResumeVideo] Transcription done - language:', language, 'length:', transcript.length)
+    const langName = getLanguageDisplayName(language)
+    onProgress(`Transcription complete · ${langName}`, 60)
 
     if (!transcript || transcript.trim().length === 0) {
-      throw new Error('No speech detected in the video. The file may not contain audio or the audio may be too noisy.')
+      throw new Error(
+        'No speech detected in the video. The file may not contain audio or the audio may be too noisy.'
+      )
     }
-
-    onProgress('Transcription complete', 60)
 
     const detectLanguage = settings.summaryLanguage === 'auto' ? language : settings.summaryLanguage
 
@@ -59,4 +59,35 @@ export async function processVideo(
       cleanupFiles(audioPath)
     }
   }
+}
+
+function getLanguageDisplayName(code: string): string {
+  const map: Record<string, string> = {
+    en: 'English',
+    es: 'Spanish',
+    pt: 'Portuguese',
+    fr: 'French',
+    de: 'German',
+    it: 'Italian',
+    ja: 'Japanese',
+    ko: 'Korean',
+    zh: 'Chinese',
+    ru: 'Russian',
+    ar: 'Arabic',
+    hi: 'Hindi',
+    nl: 'Dutch',
+    pl: 'Polish',
+    tr: 'Turkish',
+    vi: 'Vietnamese',
+    th: 'Thai',
+    sv: 'Swedish',
+    da: 'Danish',
+    fi: 'Finnish',
+    no: 'Norwegian',
+    cs: 'Czech',
+    ro: 'Romanian',
+    hu: 'Hungarian',
+    uk: 'Ukrainian'
+  }
+  return map[code] || code
 }

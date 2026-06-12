@@ -19,12 +19,12 @@ Use these section headings in **${languageLabel}**:
 ${getSectionHeadings(detectedLanguage)}
 
 Rules:
-- Write everything in the same language as the transcript.
+- Write everything in the same language as the transcript. Do not translate.
 - Be concise but thorough.
 - Extract action items and decisions explicitly.
 - Note any dates, deadlines, people, projects, or key topics mentioned.
-- If no action items are found, say "None detected."
-- If no decisions are found, say "None detected."
+- If no action items are found, indicate that none were detected — in the same language as the transcript.
+- If no decisions are found, indicate that none were detected — in the same language as the transcript.
 - Start each section heading with "##" followed by a space.
 
 ---

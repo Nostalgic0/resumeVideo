@@ -9,20 +9,90 @@ export interface TranscriptionResult {
 }
 
 export async function transcribe(audioPath: string): Promise<TranscriptionResult> {
+  const detectedLanguage = await detectLanguage(audioPath)
+  console.log('[ResumeVideo] Detected language:', detectedLanguage)
+
+  let transcript = await transcribeWithLanguage(audioPath, detectedLanguage)
+
+  if (isBadTranscript(transcript)) {
+    const fallbacks = getFallbackLanguages(detectedLanguage)
+    for (const fallbackLang of fallbacks) {
+      console.log(`[ResumeVideo] Retrying transcription with -l ${fallbackLang}`)
+      transcript = await transcribeWithLanguage(audioPath, fallbackLang)
+      if (!isBadTranscript(transcript)) {
+        console.log(`[ResumeVideo] Fallback to ${fallbackLang} succeeded`)
+        return { transcript, language: fallbackLang }
+      }
+    }
+  }
+
+  return { transcript, language: detectedLanguage }
+}
+
+function isBadTranscript(transcript: string): boolean {
+  if (!transcript || transcript.trim().length < 10) return true
+
+  const badPhrases = [
+    'speaking in foreign language',
+    'foreign language',
+    '[foreign',
+    '(speaking'
+  ]
+  const lines = transcript.split('\n').filter((l) => l.trim().length > 0)
+  if (lines.length === 0) return true
+
+  const badCount = lines.filter((line) =>
+    badPhrases.some((phrase) => line.toLowerCase().includes(phrase))
+  ).length
+
+  return badCount > lines.length * 0.3
+}
+
+function getFallbackLanguages(detected: string): string[] {
+  const set = new Set([detected, 'es', 'en'])
+  set.delete(detected)
+  return [...set]
+}
+
+async function detectLanguage(audioPath: string): Promise<string> {
   const whisperPath = getWhisperPath()
   const modelPath = getModelPath()
 
-  const outputPath = audioPath.replace(/\.wav$/, '')
+  return new Promise<string>((resolve) => {
+    execFile(
+      whisperPath,
+      ['-m', modelPath, '-f', audioPath, '-l', 'auto', '-dl'],
+      { timeout: 120000 },
+      (_error, stdout, stderr) => {
+        const output = stderr || stdout
+        const match =
+          output.match(/auto-detected language:\s*(\w+)/i) ||
+          output.match(/detected language:\s*['"]?(\w+)['"]?/i)
+        const lang = match ? match[1].toLowerCase() : 'en'
+        resolve(lang)
+      }
+    )
+  })
+}
 
-  return new Promise<TranscriptionResult>((resolve, reject) => {
+async function transcribeWithLanguage(
+  audioPath: string,
+  language: string
+): Promise<string> {
+  const whisperPath = getWhisperPath()
+  const modelPath = getModelPath()
+  const outputBase = audioPath.replace(/\.wav$/, '')
+
+  return new Promise<string>((resolve, reject) => {
+    console.log(`[ResumeVideo] Transcribing with -l ${language} ...`)
     execFile(
       whisperPath,
       [
         '-m', modelPath,
         '-f', audioPath,
-        '-l', 'auto',
-        '-osrt',
-        '-of', outputPath,
+        '-l', language,
+        '-otxt',
+        '-of', outputBase,
         '--no-timestamps'
       ],
       { timeout: 600000 },
@@ -30,32 +100,34 @@ export async function transcribe(audioPath: string): Promise<TranscriptionResult
         if (error) {
           const errorMsg = stderr || stdout || error.message
           if (errorMsg.includes('No such file') || errorMsg.includes('not found')) {
-            reject(new Error(
-              'Whisper model not found. Download a model from https://huggingface.co/ggerganov/whisper.cpp and place it in the resources/models folder.'
-            ))
+            reject(
+              new Error(
+                'Whisper model not found. Download a model from https://huggingface.co/ggerganov/whisper.cpp and place it in the resources/models folder.'
+              )
+            )
           } else {
             reject(new Error(`Whisper transcription failed: ${errorMsg}`))
           }
           return
         }
 
-        const detectedLanguage = parseDetectedLanguage(stderr || stdout)
-        const transcript = readTranscript(outputPath)
-
-        resolve({ transcript, language: detectedLanguage || 'en' })
+        const transcript = readTranscriptFile(outputBase)
+        resolve(transcript)
       }
     )
   })
 }
 
-function readTranscript(outputPath: string): string {
-  const srtPath = `${outputPath}.srt`
-  const txtPath = `${outputPath}.txt`
-  const vttPath = `${outputPath}.vtt`
+function readTranscriptFile(outputBase: string): string {
+  const candidates = [
+    `${outputBase}.txt`,
+    `${outputBase}.srt`,
+    `${outputBase}.vtt`
+  ]
 
-  for (const p of [srtPath, txtPath, vttPath]) {
-    if (existsSync(p)) {
-      const content = readFileSync(p, 'utf-8')
+  for (const path of candidates) {
+    if (existsSync(path)) {
+      const content = readFileSync(path, 'utf-8')
       return cleanTranscript(content)
     }
   }
@@ -72,13 +144,6 @@ function cleanTranscript(raw: string): string {
     .split('\n')
     .filter((line) => line.trim().length > 0)
     .join(' ')
-}
-
-function parseDetectedLanguage(output: string): string | null {
-  const match = output.match(/auto-detected language:\s*(\w+)/i) ||
-    output.match(/detected language:\s*(\w+)/i) ||
-    output.match(/language\s*=\s*['"](\w+)['"]/i)
-  return match ? match[1].toLowerCase() : null
 }
 
 function getWhisperPath(): string {
