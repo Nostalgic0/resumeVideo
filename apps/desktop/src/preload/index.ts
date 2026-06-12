@@ -4,6 +4,9 @@ import type { AppSettings } from '@resumevideo/core'
 export interface ProgressEvent {
   step: string
   progress: number
+  currentTime?: number
+  duration?: number
+  etaSeconds?: number
 }
 
 const api = {

@@ -7,6 +7,9 @@ export type Page = 'home' | 'settings' | 'processing' | 'result'
 export interface ProgressInfo {
   step: string
   progress: number
+  currentTime?: number
+  duration?: number
+  etaSeconds?: number
 }
 
 export interface LogEntry {

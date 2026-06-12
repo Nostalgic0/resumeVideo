@@ -1,6 +1,9 @@
 export interface ProgressEvent {
   step: string
   progress: number
+  currentTime?: number
+  duration?: number
+  etaSeconds?: number
 }
 
 export interface ApiType {

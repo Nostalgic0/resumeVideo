@@ -44,6 +44,29 @@ export async function extractAudio(videoPath: string): Promise<string> {
   return outputPath
 }
 
+export async function getAudioDuration(audioPath: string): Promise<number> {
+  return new Promise<number>((resolve) => {
+    execFile(
+      getFfprobePath(),
+      [
+        '-v', 'error',
+        '-show_entries', 'format=duration',
+        '-of', 'default=noprint_wrappers=1:nokey=1',
+        audioPath
+      ],
+      { timeout: 30000 },
+      (_error, stdout) => {
+        const seconds = parseFloat(stdout.trim())
+        if (!isNaN(seconds) && seconds > 0) {
+          resolve(seconds)
+        } else {
+          resolve(0)
+        }
+      }
+    )
+  })
+}
+
 function getFfmpegPath(): string {
   const exeName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
 
@@ -68,6 +91,32 @@ function getFfmpegPath(): string {
   }
 
   return 'ffmpeg'
+}
+
+function getFfprobePath(): string {
+  const exeName = process.platform === 'win32' ? 'ffprobe.exe' : 'ffprobe'
+
+  if (!app.isPackaged) {
+    const devPaths = [
+      join(__dirname, '..', '..', '..', '..', 'resources', 'bin', process.platform, exeName),
+      'ffprobe'
+    ]
+    for (const p of devPaths) {
+      if (existsSync(p)) return p
+    }
+    return 'ffprobe'
+  }
+
+  const bundledPath = join(
+    process.resourcesPath || '',
+    'resources', 'bin', process.platform, exeName
+  )
+
+  if (existsSync(bundledPath)) {
+    return bundledPath
+  }
+
+  return 'ffprobe'
 }
 
 export function getTempDir(videoPath: string): string {

@@ -99,8 +99,8 @@ export function registerIpcHandlers(): void {
       throw new Error('No window found')
     }
 
-    const sendProgress = (step: string, progress: number) => {
-      window.webContents.send('video-progress', { step, progress })
+    const sendProgress = (step: string, progress: number, extra?: { currentTime?: number; duration?: number; etaSeconds?: number }) => {
+      window.webContents.send('video-progress', { step, progress, ...extra })
     }
 
     try {

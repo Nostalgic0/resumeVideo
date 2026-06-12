@@ -118,6 +118,19 @@ export default function Processing(): JSX.Element {
         <p className="progress-step">{progress.step}</p>
         <p className="progress-percent">{progress.progress}%</p>
 
+        {progress.currentTime !== undefined && progress.duration && progress.duration > 0 && (
+          <div className="progress-time">
+            <span className="progress-time-label">
+              {formatTime(progress.currentTime)} / {formatTime(progress.duration)}
+            </span>
+            {progress.etaSeconds !== undefined && progress.etaSeconds > 0 && (
+              <span className="progress-eta">
+                About {formatEta(progress.etaSeconds)} remaining
+              </span>
+            )}
+          </div>
+        )}
+
         {activityLog.length > 0 && (
           <div className="activity-log">
             <h3 className="activity-log-title">Activity Log</h3>
@@ -138,4 +151,18 @@ export default function Processing(): JSX.Element {
       </div>
     </div>
   )
+}
+
+function formatTime(totalSeconds: number): string {
+  if (!totalSeconds || totalSeconds <= 0) return '0:00'
+  const m = Math.floor(totalSeconds / 60)
+  const s = Math.floor(totalSeconds % 60)
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
+function formatEta(seconds: number): string {
+  if (seconds < 60) return 'less than a minute'
+  const m = Math.round(seconds / 60)
+  if (m === 1) return '1 minute'
+  return `${m} minutes`
 }

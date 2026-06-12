@@ -1,13 +1,14 @@
 import type { AppSettings } from '@resumevideo/core'
-import { extractAudio, cleanupFiles } from './extractAudio'
+import { extractAudio, cleanupFiles, getAudioDuration } from './extractAudio'
 import { transcribe } from './transcribe'
+import type { TranscriptionProgress } from './transcribe'
 import { summarize } from './summarize'
 import { exportResult } from './exportResult'
 
 export async function processVideo(
   videoPath: string,
   settings: AppSettings,
-  onProgress: (step: string, progress: number) => void
+  onProgress: (step: string, progress: number, extra?: { currentTime?: number; duration?: number; etaSeconds?: number }) => void
 ): Promise<string> {
   let audioPath: string | null = null
 
@@ -21,10 +22,25 @@ export async function processVideo(
     console.log('[ResumeVideo] Audio extracted:', audioPath)
     onProgress('Audio extracted', 20)
 
+    const totalSeconds = await getAudioDuration(audioPath)
+    console.log('[ResumeVideo] Audio duration:', totalSeconds, 'seconds')
+
     const effectiveLanguage = settings.videoLanguage
     const isAuto = effectiveLanguage === 'auto'
-
     const qualityLabel = settings.transcriptionModel === 'small' ? 'Better' : 'Fast'
+
+    const transcribeProgress = (tp: TranscriptionProgress): void => {
+      const pct = Math.round(25 + (tp.percent * 0.35))
+      onProgress(
+        `Transcribing ${tp.percent}% · ${formatTime(tp.currentSeconds)} / ${formatTime(tp.totalSeconds)}`,
+        pct,
+        {
+          currentTime: tp.currentSeconds,
+          duration: tp.totalSeconds,
+          etaSeconds: tp.etaSeconds
+        }
+      )
+    }
 
     if (isAuto) {
       onProgress(`Detecting spoken language (${qualityLabel})...`, 22)
@@ -36,7 +52,8 @@ export async function processVideo(
     const { transcript, language } = await transcribe(
       audioPath,
       effectiveLanguage,
-      settings.transcriptionModel
+      settings.transcriptionModel,
+      transcribeProgress
     )
     const langName = getLanguageDisplayName(language)
     onProgress(`Transcription complete · ${langName}`, 60)
@@ -76,33 +93,21 @@ export async function processVideo(
   }
 }
 
+function formatTime(totalSeconds: number): string {
+  if (!totalSeconds || totalSeconds <= 0) return '0:00'
+  const m = Math.floor(totalSeconds / 60)
+  const s = Math.floor(totalSeconds % 60)
+  return `${m}:${s.toString().padStart(2, '0')}`
+}
+
 function getLanguageDisplayName(code: string): string {
   const map: Record<string, string> = {
-    en: 'English',
-    es: 'Spanish',
-    pt: 'Portuguese',
-    fr: 'French',
-    de: 'German',
-    it: 'Italian',
-    ja: 'Japanese',
-    ko: 'Korean',
-    zh: 'Chinese',
-    ru: 'Russian',
-    ar: 'Arabic',
-    hi: 'Hindi',
-    nl: 'Dutch',
-    pl: 'Polish',
-    tr: 'Turkish',
-    vi: 'Vietnamese',
-    th: 'Thai',
-    sv: 'Swedish',
-    da: 'Danish',
-    fi: 'Finnish',
-    no: 'Norwegian',
-    cs: 'Czech',
-    ro: 'Romanian',
-    hu: 'Hungarian',
-    uk: 'Ukrainian'
+    en: 'English', es: 'Spanish', pt: 'Portuguese', fr: 'French',
+    de: 'German', it: 'Italian', ja: 'Japanese', ko: 'Korean',
+    zh: 'Chinese', ru: 'Russian', ar: 'Arabic', hi: 'Hindi',
+    nl: 'Dutch', pl: 'Polish', tr: 'Turkish', vi: 'Vietnamese',
+    th: 'Thai', sv: 'Swedish', da: 'Danish', fi: 'Finnish',
+    no: 'Norwegian', cs: 'Czech', ro: 'Romanian', hu: 'Hungarian', uk: 'Ukrainian'
   }
   return map[code] || code
 }

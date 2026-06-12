@@ -1,36 +1,54 @@
-import { execFile } from 'child_process'
+import { spawn } from 'child_process'
 import { join } from 'path'
 import { existsSync, readFileSync } from 'fs'
 import { app } from 'electron'
+import { getAudioDuration } from './extractAudio'
 
 export interface TranscriptionResult {
   transcript: string
   language: string
 }
 
+export interface TranscriptionProgress {
+  percent: number
+  currentSeconds: number
+  totalSeconds: number
+  etaSeconds: number
+}
+
+type ProgressCallback = (update: TranscriptionProgress) => void
+
 export async function transcribe(
   audioPath: string,
   preferredLanguage: string = 'auto',
-  modelType: 'base' | 'small' = 'base'
+  modelType: 'base' | 'small' = 'base',
+  onProgress?: ProgressCallback
 ): Promise<TranscriptionResult> {
   console.log(`[ResumeVideo] Transcribing with model: ${modelType}`)
 
+  const totalSeconds = await getAudioDuration(audioPath)
+  console.log('[ResumeVideo] Audio duration:', totalSeconds, 'seconds')
+
+  if (onProgress && totalSeconds > 0) {
+    onProgress({ percent: 0, currentSeconds: 0, totalSeconds, etaSeconds: 0 })
+  }
+
   if (preferredLanguage !== 'auto') {
     console.log('[ResumeVideo] Transcribing with user-selected language:', preferredLanguage)
-    const transcript = await transcribeWithLanguage(audioPath, preferredLanguage, modelType)
+    const transcript = await transcribeWithLanguage(audioPath, preferredLanguage, modelType, totalSeconds, onProgress)
     return { transcript, language: preferredLanguage }
   }
 
   const detectedLanguage = await detectLanguage(audioPath, modelType)
   console.log('[ResumeVideo] Detected language:', detectedLanguage)
 
-  let transcript = await transcribeWithLanguage(audioPath, detectedLanguage, modelType)
+  let transcript = await transcribeWithLanguage(audioPath, detectedLanguage, modelType, totalSeconds, onProgress)
 
   if (isBadTranscript(transcript)) {
     const fallbacks = getFallbackLanguages(detectedLanguage)
     for (const fallbackLang of fallbacks) {
       console.log(`[ResumeVideo] Retrying transcription with -l ${fallbackLang}`)
-      transcript = await transcribeWithLanguage(audioPath, fallbackLang, modelType)
+      transcript = await transcribeWithLanguage(audioPath, fallbackLang, modelType, totalSeconds, onProgress)
       if (!isBadTranscript(transcript)) {
         console.log(`[ResumeVideo] Fallback to ${fallbackLang} succeeded`)
         return { transcript, language: fallbackLang }
@@ -74,26 +92,53 @@ async function detectLanguage(
   const modelPath = getModelPath(modelType)
 
   return new Promise<string>((resolve) => {
-    execFile(
-      whisperPath,
-      ['-m', modelPath, '-f', audioPath, '-l', 'auto', '-dl'],
-      { timeout: 120000 },
-      (_error, stdout, stderr) => {
-        const output = stderr || stdout
-        const match =
-          output.match(/auto-detected language:\s*(\w+)/i) ||
-          output.match(/detected language:\s*['"]?(\w+)['"]?/i)
-        const lang = match ? match[1].toLowerCase() : 'en'
-        resolve(lang)
+    let resolved = false
+    const timer = setTimeout(() => {
+      if (!resolved) { resolved = true; resolve('en') }
+    }, 60000)
+
+    const proc = spawn(whisperPath, ['-m', modelPath, '-f', audioPath, '-l', 'auto', '-dl'], {
+      stdio: ['ignore', 'pipe', 'pipe']
+    })
+
+    proc.stderr?.on('data', (data: Buffer) => {
+      if (resolved) return
+      const output = data.toString()
+      const match =
+        output.match(/auto-detected language:\s*(\w+)/i) ||
+        output.match(/detected language:\s*['"]?(\w+)['"]?/i)
+      if (match) {
+        resolved = true
+        clearTimeout(timer)
+        proc.kill()
+        resolve(match[1].toLowerCase())
       }
-    )
+    })
+
+    proc.on('close', () => {
+      clearTimeout(timer)
+      if (!resolved) {
+        resolved = true
+        resolve('en')
+      }
+    })
+
+    proc.on('error', () => {
+      clearTimeout(timer)
+      if (!resolved) {
+        resolved = true
+        resolve('en')
+      }
+    })
   })
 }
 
 async function transcribeWithLanguage(
   audioPath: string,
   language: string,
-  modelType: 'base' | 'small' = 'base'
+  modelType: 'base' | 'small' = 'base',
+  totalSeconds: number = 0,
+  onProgress?: ProgressCallback
 ): Promise<string> {
   const whisperPath = getWhisperPath()
   const modelPath = getModelPath(modelType)
@@ -101,37 +146,80 @@ async function transcribeWithLanguage(
 
   return new Promise<string>((resolve, reject) => {
     console.log(`[ResumeVideo] Transcribing with -l ${language} ...`)
-    execFile(
-      whisperPath,
-      [
-        '-m', modelPath,
-        '-f', audioPath,
-        '-l', language,
-        '-otxt',
-        '-of', outputBase,
-        '--no-timestamps'
-      ],
-      { timeout: 600000 },
-      (error, stdout, stderr) => {
-        if (error) {
-          const errorMsg = stderr || stdout || error.message
-          if (errorMsg.includes('No such file') || errorMsg.includes('not found')) {
-            reject(
-              new Error(
-                'Whisper model not found. Download a model from https://huggingface.co/ggerganov/whisper.cpp and place it in the resources/models folder.'
-              )
-            )
-          } else {
-            reject(new Error(`Whisper transcription failed: ${errorMsg}`))
-          }
-          return
-        }
+    const startTime = Date.now()
 
-        const transcript = readTranscriptFile(outputBase)
-        resolve(transcript)
+    const proc = spawn(whisperPath, [
+      '-m', modelPath,
+      '-f', audioPath,
+      '-l', language,
+      '-otxt',
+      '-of', outputBase,
+      '--no-timestamps',
+      '-pp'
+    ], {
+      timeout: 600000,
+      stdio: ['ignore', 'pipe', 'pipe']
+    })
+
+    let detectedPercent = 0
+
+    proc.stderr?.on('data', (data: Buffer) => {
+      const text = data.toString()
+      parseWhisperProgress(text, (percent) => {
+        detectedPercent = percent
+        if (onProgress && totalSeconds > 0) {
+          const elapsed = (Date.now() - startTime) / 1000
+          const currentSeconds = Math.round(totalSeconds * (percent / 100))
+          const speed = percent > 1 ? (elapsed / percent) * 100 : 0
+          const etaSeconds = Math.round(Math.max(0, speed - elapsed))
+          onProgress({ percent, currentSeconds, totalSeconds, etaSeconds })
+        }
+      })
+    })
+
+    proc.on('close', (code) => {
+      if (code !== 0 && code !== null) {
+        reject(new Error(`Whisper failed with exit code ${code}`))
+        return
       }
-    )
+
+      if (onProgress && totalSeconds > 0) {
+        onProgress({ percent: 100, currentSeconds: totalSeconds, totalSeconds, etaSeconds: 0 })
+      }
+
+      const transcript = readTranscriptFile(outputBase)
+      resolve(transcript)
+    })
+
+    proc.on('error', (err) => {
+      reject(new Error(`Whisper process error: ${err.message}`))
+    })
   })
+}
+
+function parseWhisperProgress(text: string, onPercent: (pct: number) => void): void {
+  if (!text) return
+
+  const lines = text.split('\n')
+  for (const line of lines) {
+    const match = line.match(/(\d+)\s*%/)
+    if (match) {
+      onPercent(parseInt(match[1], 10))
+      continue
+    }
+
+    const progressMatch = line.match(/progress\s*=\s*(\d+)/i)
+    if (progressMatch) {
+      onPercent(parseInt(progressMatch[1], 10))
+      continue
+    }
+
+    const barMatch = line.match(/(\d+)%\s*\|/)
+    if (barMatch) {
+      onPercent(parseInt(barMatch[1], 10))
+      continue
+    }
+  }
 }
 
 function readTranscriptFile(outputBase: string): string {
