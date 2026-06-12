@@ -4,7 +4,11 @@ import react from '@vitejs/plugin-react'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: ['@resumevideo/core']
+      })
+    ],
     resolve: {
       alias: {
         '@main': resolve('src/main')
@@ -12,7 +16,11 @@ export default defineConfig({
     }
   },
   preload: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: ['@resumevideo/core']
+      })
+    ]
   },
   renderer: {
     resolve: {
