@@ -42,10 +42,12 @@ export const DEFAULT_OPENAI_CONFIG: AIConfig = {
 }
 
 export type VideoLanguage = 'es' | 'en' | 'pt' | 'fr' | 'de' | 'it' | 'auto'
+export type TranscriptionModel = 'base' | 'small'
 
 export interface AppSettings {
   aiConfig: AIConfig
   outputFolder: string
   videoLanguage: VideoLanguage
+  transcriptionModel: TranscriptionModel
   lastProvider: AIProvider
 }

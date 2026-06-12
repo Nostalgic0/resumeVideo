@@ -10,24 +10,27 @@ export interface TranscriptionResult {
 
 export async function transcribe(
   audioPath: string,
-  preferredLanguage: string = 'auto'
+  preferredLanguage: string = 'auto',
+  modelType: 'base' | 'small' = 'base'
 ): Promise<TranscriptionResult> {
+  console.log(`[ResumeVideo] Transcribing with model: ${modelType}`)
+
   if (preferredLanguage !== 'auto') {
     console.log('[ResumeVideo] Transcribing with user-selected language:', preferredLanguage)
-    const transcript = await transcribeWithLanguage(audioPath, preferredLanguage)
+    const transcript = await transcribeWithLanguage(audioPath, preferredLanguage, modelType)
     return { transcript, language: preferredLanguage }
   }
 
-  const detectedLanguage = await detectLanguage(audioPath)
+  const detectedLanguage = await detectLanguage(audioPath, modelType)
   console.log('[ResumeVideo] Detected language:', detectedLanguage)
 
-  let transcript = await transcribeWithLanguage(audioPath, detectedLanguage)
+  let transcript = await transcribeWithLanguage(audioPath, detectedLanguage, modelType)
 
   if (isBadTranscript(transcript)) {
     const fallbacks = getFallbackLanguages(detectedLanguage)
     for (const fallbackLang of fallbacks) {
       console.log(`[ResumeVideo] Retrying transcription with -l ${fallbackLang}`)
-      transcript = await transcribeWithLanguage(audioPath, fallbackLang)
+      transcript = await transcribeWithLanguage(audioPath, fallbackLang, modelType)
       if (!isBadTranscript(transcript)) {
         console.log(`[ResumeVideo] Fallback to ${fallbackLang} succeeded`)
         return { transcript, language: fallbackLang }
@@ -63,9 +66,12 @@ function getFallbackLanguages(detected: string): string[] {
   return [...set]
 }
 
-async function detectLanguage(audioPath: string): Promise<string> {
+async function detectLanguage(
+  audioPath: string,
+  modelType: 'base' | 'small' = 'base'
+): Promise<string> {
   const whisperPath = getWhisperPath()
-  const modelPath = getModelPath()
+  const modelPath = getModelPath(modelType)
 
   return new Promise<string>((resolve) => {
     execFile(
@@ -86,10 +92,11 @@ async function detectLanguage(audioPath: string): Promise<string> {
 
 async function transcribeWithLanguage(
   audioPath: string,
-  language: string
+  language: string,
+  modelType: 'base' | 'small' = 'base'
 ): Promise<string> {
   const whisperPath = getWhisperPath()
-  const modelPath = getModelPath()
+  const modelPath = getModelPath(modelType)
   const outputBase = audioPath.replace(/\.wav$/, '')
 
   return new Promise<string>((resolve, reject) => {
@@ -182,15 +189,12 @@ function getWhisperPath(): string {
   return 'whisper-cli'
 }
 
-function getModelPath(): string {
-  const candidateModels = [
-    'ggml-base.bin',
-    'ggml-base.en.bin',
-    'ggml-small.bin',
-    'ggml-small.en.bin',
-    'ggml-tiny.bin',
-    'ggml-tiny.en.bin'
-  ]
+function getModelPath(modelType: 'base' | 'small' = 'base'): string {
+  const modelNames: Record<string, string[]> = {
+    base: ['ggml-base.bin', 'ggml-base.en.bin'],
+    small: ['ggml-small.bin', 'ggml-small.en.bin']
+  }
+  const candidateModels = modelNames[modelType] || modelNames['base']
 
   const searchPaths: string[] = []
 
@@ -213,8 +217,9 @@ function getModelPath(): string {
     }
   }
 
+  const fallbackName = modelType === 'small' ? 'ggml-small.bin' : 'ggml-base.bin'
   return join(
     process.resourcesPath || join(__dirname, '..', '..', '..', '..'),
-    'resources', 'models', 'ggml-base.bin'
+    'resources', 'models', fallbackName
   )
 }

@@ -24,14 +24,20 @@ export async function processVideo(
     const effectiveLanguage = settings.videoLanguage
     const isAuto = effectiveLanguage === 'auto'
 
+    const qualityLabel = settings.transcriptionModel === 'small' ? 'Better' : 'Fast'
+
     if (isAuto) {
-      onProgress('Detecting spoken language...', 22)
+      onProgress(`Detecting spoken language (${qualityLabel})...`, 22)
     } else {
       const langName = getLanguageDisplayName(effectiveLanguage)
-      onProgress(`Transcribing in ${langName}...`, 22)
+      onProgress(`Transcribing in ${langName} (${qualityLabel})...`, 22)
     }
 
-    const { transcript, language } = await transcribe(audioPath, effectiveLanguage)
+    const { transcript, language } = await transcribe(
+      audioPath,
+      effectiveLanguage,
+      settings.transcriptionModel
+    )
     const langName = getLanguageDisplayName(language)
     onProgress(`Transcription complete · ${langName}`, 60)
 

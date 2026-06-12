@@ -142,6 +142,48 @@ export default function Settings(): JSX.Element {
         </div>
 
         <div className="settings-group">
+          <label className="settings-label">Transcription Quality</label>
+          <div className="settings-radio-group-quality">
+            <label className="settings-radio">
+              <input
+                type="radio"
+                name="quality"
+                value="base"
+                checked={localSettings.transcriptionModel === 'base'}
+                onChange={() =>
+                  setLocalSettings({ ...localSettings, transcriptionModel: 'base' })
+                }
+              />
+              <div className="settings-radio-content">
+                <span className="settings-radio-label">Fast</span>
+                <span className="settings-radio-desc">
+                  {localSettings.videoLanguage === 'es'
+                    ? 'Good for clear English audio. Not recommended for Spanish.'
+                    : 'Faster processing, smaller app size. Best for clear audio.'}
+                </span>
+              </div>
+            </label>
+            <label className="settings-radio">
+              <input
+                type="radio"
+                name="quality"
+                value="small"
+                checked={localSettings.transcriptionModel === 'small'}
+                onChange={() =>
+                  setLocalSettings({ ...localSettings, transcriptionModel: 'small' })
+                }
+              />
+              <div className="settings-radio-content">
+                <span className="settings-radio-label">Better (Recommended)</span>
+                <span className="settings-radio-desc">
+                  More accurate transcription. Recommended for meetings, accents, noisy audio, and non-English languages. Slower and requires a larger model.
+                </span>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div className="settings-group">
           <label className="settings-label">Output Folder</label>
           <div className="settings-row">
             <input

@@ -272,14 +272,38 @@ body {
 
 .settings-radio {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  align-items: flex-start;
+  gap: 8px;
   font-size: 14px;
   cursor: pointer;
 }
 
 .settings-radio input[type='radio'] {
   accent-color: var(--accent);
+  margin-top: 3px;
+}
+
+.settings-radio-group-quality {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-radio-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-radio-label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.settings-radio-desc {
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
 }
 
 .settings-actions {

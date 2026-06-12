@@ -26,6 +26,7 @@ const defaultSettings: AppSettings = {
   aiConfig: DEFAULT_DEEPSEEK_CONFIG,
   outputFolder: '',
   videoLanguage: 'es',
+  transcriptionModel: 'base',
   lastProvider: 'deepseek'
 }
 
