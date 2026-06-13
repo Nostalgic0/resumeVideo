@@ -3,7 +3,7 @@ import { useStore } from '../store/useStore'
 import Dropzone from '../components/Dropzone'
 
 export default function Home(): JSX.Element {
-  const { setPage, setVideoPath, setError, settings, setSettings, videoPath, reset } = useStore()
+  const { setPage, setVideoPath, setError, settings, setSettings, videoPath, reset, resultPath } = useStore()
   const settingsLoaded = useRef(false)
 
   useEffect(() => {
@@ -45,32 +45,98 @@ export default function Home(): JSX.Element {
     }
   }, [handleFileDrop])
 
+  const hasApiKey = !!settings.aiConfig.apiKey
+  const hasOutputFolder = !!settings.outputFolder
+
   return (
     <div className="page home-page">
-      <div className="home-content">
-        <Dropzone onFileDrop={handleFileDrop} />
+      <div className="home-layout">
+        <div className="home-main">
+          <div className="home-hero">
+            <div className="home-hero-icon">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="23 7 16 12 23 17 23 7" />
+                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="home-hero-title">Summarize your videos with AI</h1>
+              <p className="home-hero-sub">Transcribe locally, summarize intelligently.</p>
+            </div>
+          </div>
 
-        <div className="home-divider">
-          <span>or</span>
+          <Dropzone onFileDrop={handleFileDrop} />
+
+          <div className="home-actions">
+            <button className="btn btn-primary btn-large" onClick={handleSelectClick}>
+              Choose a Video
+            </button>
+            {videoPath && (
+              <p className="home-path">{videoPath}</p>
+            )}
+          </div>
+
+          <div className="home-formats">
+            <span className="tag">MP4</span>
+            <span className="tag">MKV</span>
+            <span className="tag">AVI</span>
+            <span className="tag">MOV</span>
+            <span className="tag">WebM</span>
+            <span className="tag">M4V</span>
+            <span className="tag">WMV</span>
+            <span className="tag">FLV</span>
+          </div>
         </div>
 
-        <button className="btn btn-primary btn-large" onClick={handleSelectClick}>
-          Browse Files
-        </button>
+        <div className="home-sidebar">
+          <div className="home-status-card">
+            <h3 className="home-status-title">Quick Status</h3>
+            <div className="home-status-list">
+              <div className={`home-status-item ${hasApiKey ? 'home-status-ok' : 'home-status-warn'}`}>
+                <span className="home-status-dot" />
+                <div>
+                  <span className="home-status-label">API Key</span>
+                  <span className="home-status-value">{hasApiKey ? 'Configured' : 'Not set'}</span>
+                </div>
+              </div>
+              <div className={`home-status-item ${hasOutputFolder ? 'home-status-ok' : 'home-status-warn'}`}>
+                <span className="home-status-dot" />
+                <div>
+                  <span className="home-status-label">Output Folder</span>
+                  <span className="home-status-value">{hasOutputFolder ? 'Set' : 'Not set'}</span>
+                </div>
+              </div>
+              <div className="home-status-item home-status-ok">
+                <span className="home-status-dot" />
+                <div>
+                  <span className="home-status-label">Model</span>
+                  <span className="home-status-value">{settings.transcriptionModel === 'small' ? 'Better' : 'Fast'}</span>
+                </div>
+              </div>
+              <div className="home-status-item home-status-ok">
+                <span className="home-status-dot" />
+                <div>
+                  <span className="home-status-label">Language</span>
+                  <span className="home-status-value">{settings.videoLanguage === 'auto' ? 'Auto-detect' : settings.videoLanguage.toUpperCase()}</span>
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {videoPath && (
-          <p className="home-path">{videoPath}</p>
-        )}
-
-        <div className="home-info">
-          <p>Supported formats: MP4, MKV, AVI, MOV, WebM, M4V, WMV, FLV</p>
+          <div className="home-quick-actions">
+            <button className="btn btn-secondary" onClick={() => setPage('settings')}>
+              Configure Settings
+            </button>
+            {resultPath && (
+              <button className="btn btn-ghost" onClick={() => setPage('result')}>
+                View Last Summary
+              </button>
+            )}
+            <button className="btn btn-ghost" onClick={() => setPage('history')}>
+              Browse History
+            </button>
+          </div>
         </div>
-      </div>
-
-      <div className="home-footer">
-        <button className="btn btn-secondary" onClick={() => setPage('settings')}>
-          Settings
-        </button>
       </div>
     </div>
   )

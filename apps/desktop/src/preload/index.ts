@@ -13,6 +13,8 @@ const api = {
   selectVideo: (): Promise<string | null> => ipcRenderer.invoke('select-video'),
   selectOutputFolder: (): Promise<string | null> =>
     ipcRenderer.invoke('select-output-folder'),
+  openFolder: (filePath: string): Promise<void> =>
+    ipcRenderer.invoke('open-folder', filePath),
   processVideo: (videoPath: string, settings: AppSettings): Promise<string> =>
     ipcRenderer.invoke('process-video', videoPath, settings),
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('get-settings'),

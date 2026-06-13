@@ -72,17 +72,30 @@ export default function Processing(): JSX.Element {
   if (error) {
     return (
       <div className="page processing-page">
-        <div className="processing-container">
+        <div className="processing-panel">
           <div className="processing-error">
-            <h2>Error</h2>
+            <div className="processing-error-icon">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <h2>Something went wrong</h2>
             <p>{error}</p>
-            <button className="btn btn-primary" onClick={() => setPage('home')}>
-              Try Again
-            </button>
+            <div className="processing-error-actions">
+              <button className="btn btn-primary" onClick={() => { setPage('home') }}>
+                Go Home
+              </button>
+              <button className="btn btn-secondary" onClick={() => setPage('settings')}>
+                Check Settings
+              </button>
+            </div>
           </div>
 
           {activityLog.length > 0 && (
             <div className="activity-log">
+              <h4 className="activity-log-title">Activity Log</h4>
               <div className="activity-log-scroll">
                 {activityLog.map((entry) => (
                   <div key={entry.id} className="activity-log-entry">
@@ -101,36 +114,38 @@ export default function Processing(): JSX.Element {
 
   return (
     <div className="page processing-page">
-      <div className="processing-container">
-        <div className="processing-spinner">
-          <div className="spinner" />
-        </div>
-
-        <div className="progress-bar-container">
-          <div
-            className="progress-bar-fill"
-            style={{ width: `${progress.progress}%` }}
-          />
-        </div>
-
-        <p className="progress-step">{progress.step}</p>
-        <p className="progress-percent">{progress.progress}%</p>
-
-        {progress.currentTime !== undefined && progress.duration && progress.duration > 0 && (
-          <div className="progress-time">
-            <span className="progress-time-label">
-              {formatTime(progress.currentTime)} / {formatTime(progress.duration)}
-            </span>
-            {progress.etaSeconds !== undefined && progress.etaSeconds > 0 && (
-              <span className="progress-eta">
-                About {formatEta(progress.etaSeconds)} remaining
-              </span>
-            )}
+      <div className="processing-panel">
+        <div className="processing-hero">
+          <div className="processing-spinner">
+            <div className="spinner" />
           </div>
-        )}
+          <p className="progress-step">{progress.step || 'Starting...'}</p>
+          <p className="progress-percent">{progress.progress}%</p>
+
+          <div className="progress-bar-container">
+            <div
+              className="progress-bar-fill"
+              style={{ width: `${progress.progress}%` }}
+            />
+          </div>
+
+          {progress.currentTime !== undefined && progress.duration && progress.duration > 0 && (
+            <div className="progress-time">
+              <span className="progress-time-label">
+                {formatTime(progress.currentTime)} / {formatTime(progress.duration)}
+              </span>
+              {progress.etaSeconds !== undefined && progress.etaSeconds > 0 && (
+                <span className="progress-eta">
+                  About {formatEta(progress.etaSeconds)} remaining
+                </span>
+              )}
+            </div>
+          )}
+        </div>
 
         {activityLog.length > 1 && (
           <div className="activity-log">
+            <h4 className="activity-log-title">Activity Log</h4>
             <div className="activity-log-scroll">
               {activityLog.map((entry) => (
                 <div key={entry.id} className="activity-log-entry">
@@ -142,6 +157,12 @@ export default function Processing(): JSX.Element {
             </div>
           </div>
         )}
+      </div>
+
+      <div className="processing-back">
+        <button className="btn btn-ghost" onClick={() => setPage('home')}>
+          Cancel &amp; Go Back
+        </button>
       </div>
     </div>
   )

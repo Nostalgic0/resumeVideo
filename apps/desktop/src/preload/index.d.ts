@@ -9,6 +9,7 @@ export interface ProgressEvent {
 export interface ApiType {
   selectVideo: () => Promise<string | null>
   selectOutputFolder: () => Promise<string | null>
+  openFolder: (filePath: string) => Promise<void>
   processVideo: (videoPath: string, settings: AppSettings) => Promise<string>
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<boolean>

@@ -17,7 +17,34 @@ ResumeVideo is a desktop Electron app that transcribes videos locally with Whisp
    npm run typecheck -w @resumevideo/desktop
    ```
 5. **Keep commits small** — one logical change per commit with conventional commit messages.
-6. **Use branches** — never commit directly to main.
+6. **Use branches** — never commit directly to main. Follow the mandatory git workflow below.
+
+## Mandatory Git Workflow
+
+**Before making any code change**, always run:
+
+```bash
+git status --short --branch
+```
+
+If the output shows `## main...origin/main`, you are on `main`. **Stop.** Create a feature branch first:
+
+```bash
+git switch -c feat/<short-description>
+```
+
+Only then proceed with code changes.
+
+**Checklist (follow in order every time):**
+1. Check current branch (`git status --short --branch`).
+2. If on `main`, create a feature branch (`git switch -c feat/...`).
+3. Check for pre-existing uncommitted changes from the user (`git diff --stat`). If present, ask the user before touching anything.
+4. Make the code change.
+5. Run build + typecheck (see Important Rules #4).
+6. Commit on the branch only (conventional commit message).
+7. Push the branch (`git push -u origin feat/...`), never push to `main`.
+
+**Never skip step 1.** Editing files on `main` is a violation of this workflow.
 
 ## Architecture Quick Reference
 

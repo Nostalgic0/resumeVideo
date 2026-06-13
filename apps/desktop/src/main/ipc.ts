@@ -1,4 +1,4 @@
-import { app, ipcMain, dialog, BrowserWindow } from 'electron'
+import { app, ipcMain, dialog, BrowserWindow, shell } from 'electron'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { join, dirname } from 'path'
 import type { AppSettings } from '@resumevideo/core'
@@ -86,6 +86,11 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('get-settings', () => {
     return loadSettings()
+  })
+
+  ipcMain.handle('open-folder', async (_event, filePath: string) => {
+    const folder = dirname(filePath)
+    await shell.openPath(folder)
   })
 
   ipcMain.handle('save-settings', (_event, settings: AppSettings) => {
