@@ -497,6 +497,10 @@ body {
   padding: 32px;
 }
 
+.settings-page .panel {
+  flex-shrink: 0;
+}
+
 .settings-card {
   padding: 20px 0;
   border-bottom: 1px solid var(--border-color);
