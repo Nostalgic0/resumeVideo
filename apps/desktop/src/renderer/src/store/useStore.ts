@@ -19,6 +19,12 @@ export interface LogEntry {
   timestamp: number
 }
 
+export interface HistoryEntry {
+  name: string
+  path: string
+  date: string
+}
+
 interface AppState {
   currentPage: Page
   settings: AppSettings
@@ -27,6 +33,8 @@ interface AppState {
   resultPath: string | null
   error: string | null
   activityLog: LogEntry[]
+  summaries: HistoryEntry[]
+  selectedSummaryPath: string | null
 
   setPage: (page: Page) => void
   setSettings: (settings: AppSettings) => void
@@ -35,6 +43,8 @@ interface AppState {
   setResultPath: (path: string | null) => void
   setError: (error: string | null) => void
   addLogEntry: (step: string, progress: number) => void
+  setSummaries: (summaries: HistoryEntry[]) => void
+  setSelectedSummaryPath: (path: string | null) => void
   reset: () => void
 }
 
@@ -60,6 +70,8 @@ export const useStore = create<AppState>((set) => ({
   resultPath: null,
   error: null,
   activityLog: [],
+  summaries: [],
+  selectedSummaryPath: null,
 
   setPage: (page) => set({ currentPage: page }),
   setSettings: (settings) => set({ settings }),
@@ -83,6 +95,8 @@ export const useStore = create<AppState>((set) => ({
         { id: ++logIdCounter, step, progress, timestamp: Date.now() }
       ]
     })),
+  setSummaries: (summaries) => set({ summaries }),
+  setSelectedSummaryPath: (path) => set({ selectedSummaryPath: path }),
   reset: () =>
     set({
       videoPath: null,

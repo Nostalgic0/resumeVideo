@@ -45,6 +45,9 @@ export default function Result(): JSX.Element {
             Open Output Folder
           </button>
           <div className="result-secondary-actions">
+            <button className="btn btn-ghost" onClick={() => setPage('history')}>
+              View Summaries
+            </button>
             <button className="btn btn-ghost" onClick={() => setPage('settings')}>
               Settings
             </button>

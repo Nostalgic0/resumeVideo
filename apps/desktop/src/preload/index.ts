@@ -9,18 +9,30 @@ export interface ProgressEvent {
   etaSeconds?: number
 }
 
+export interface SummaryEntry {
+  name: string
+  path: string
+  date: string
+}
+
 const api = {
   selectVideo: (): Promise<string | null> => ipcRenderer.invoke('select-video'),
   selectOutputFolder: (): Promise<string | null> =>
     ipcRenderer.invoke('select-output-folder'),
   openFolder: (filePath: string): Promise<void> =>
     ipcRenderer.invoke('open-folder', filePath),
+  openFile: (filePath: string): Promise<void> =>
+    ipcRenderer.invoke('open-file', filePath),
   processVideo: (videoPath: string, settings: AppSettings): Promise<string> =>
     ipcRenderer.invoke('process-video', videoPath, settings),
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: AppSettings): Promise<boolean> =>
     ipcRenderer.invoke('save-settings', settings),
   getPathForFile: (file: File): string => webUtils.getPathForFile(file),
+  listSummaries: (): Promise<SummaryEntry[]> =>
+    ipcRenderer.invoke('list-summaries'),
+  readSummary: (filePath: string): Promise<string> =>
+    ipcRenderer.invoke('read-summary', filePath),
   onProgress: (callback: (event: ProgressEvent) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: ProgressEvent): void =>
       callback(data)

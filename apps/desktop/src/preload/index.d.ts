@@ -6,14 +6,23 @@ export interface ProgressEvent {
   etaSeconds?: number
 }
 
+export interface SummaryEntry {
+  name: string
+  path: string
+  date: string
+}
+
 export interface ApiType {
   selectVideo: () => Promise<string | null>
   selectOutputFolder: () => Promise<string | null>
   openFolder: (filePath: string) => Promise<void>
+  openFile: (filePath: string) => Promise<void>
   processVideo: (videoPath: string, settings: AppSettings) => Promise<string>
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<boolean>
   getPathForFile: (file: File) => string
+  listSummaries: () => Promise<SummaryEntry[]>
+  readSummary: (filePath: string) => Promise<string>
   onProgress: (callback: (event: ProgressEvent) => void) => () => void
   onComplete: (callback: (outputPath: string) => void) => () => void
   onError: (callback: (error: string) => void) => () => void

@@ -1,9 +1,15 @@
 import { app, ipcMain, dialog, BrowserWindow, shell } from 'electron'
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
-import { join, dirname } from 'path'
+import { readFileSync, readdirSync, statSync, writeFileSync, existsSync, mkdirSync } from 'fs'
+import { join, dirname, basename } from 'path'
 import type { AppSettings } from '@resumevideo/core'
 import { DEFAULT_DEEPSEEK_CONFIG } from '@resumevideo/core'
 import { processVideo } from './processing/pipeline'
+
+interface SummaryEntry {
+  name: string
+  path: string
+  date: string
+}
 
 let settingsPath: string
 
@@ -82,6 +88,46 @@ export function registerIpcHandlers(): void {
     }
 
     return result.filePaths[0]
+  })
+
+  ipcMain.handle('list-summaries', () => {
+    const settings = loadSettings()
+    const folder = settings.outputFolder
+    if (!folder || !existsSync(folder)) {
+      return []
+    }
+
+    try {
+      const files = readdirSync(folder)
+      const summaries: SummaryEntry[] = []
+
+      for (const file of files) {
+        if (!file.startsWith('summary_') || !file.endsWith('.md')) continue
+        const fullPath = join(folder, file)
+        const stat = statSync(fullPath)
+        summaries.push({
+          name: file.replace(/^summary_/, '').replace(/\.md$/, '').replace(/_/g, ' '),
+          path: fullPath,
+          date: stat.mtime.toISOString()
+        })
+      }
+
+      summaries.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      return summaries
+    } catch {
+      return []
+    }
+  })
+
+  ipcMain.handle('read-summary', (_event, filePath: string) => {
+    if (!existsSync(filePath)) {
+      throw new Error('File not found')
+    }
+    return readFileSync(filePath, 'utf-8')
+  })
+
+  ipcMain.handle('open-file', async (_event, filePath: string) => {
+    await shell.openPath(filePath)
   })
 
   ipcMain.handle('get-settings', () => {
