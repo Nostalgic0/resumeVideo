@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { AppSettings } from '@resumevideo/core'
 import { DEFAULT_DEEPSEEK_CONFIG } from '@resumevideo/core'
 
-export type Page = 'home' | 'settings' | 'processing' | 'result'
+export type Page = 'home' | 'history' | 'settings' | 'help' | 'processing' | 'result'
 
 export interface ProgressInfo {
   step: string

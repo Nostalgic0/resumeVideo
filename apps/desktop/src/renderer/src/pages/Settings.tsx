@@ -49,164 +49,142 @@ export default function Settings(): JSX.Element {
 
   return (
     <div className="page settings-page">
-      <div className="settings-container">
-        <h2 className="settings-title">Settings</h2>
+      <div className="panel">
+        <div className="panel-header">
+          <h2 className="panel-title">Settings</h2>
+          <p className="panel-subtitle">Configure your AI provider, model, and output preferences.</p>
+        </div>
+        <div className="panel-body">
 
-        <div className="settings-group">
-          <label className="settings-label">AI Provider</label>
-          <div className="settings-radio-group">
-            <label className="settings-radio">
-              <input
-                type="radio"
-                name="provider"
-                value="deepseek"
-                checked={localSettings.aiConfig.provider === 'deepseek'}
-                onChange={() => handleProviderChange('deepseek')}
-              />
-              <span>DeepSeek</span>
-            </label>
-            <label className="settings-radio">
-              <input
-                type="radio"
-                name="provider"
-                value="openai"
-                checked={localSettings.aiConfig.provider === 'openai'}
-                onChange={() => handleProviderChange('openai')}
-              />
-              <span>OpenAI / ChatGPT</span>
-            </label>
+          <div className="settings-card">
+            <h3 className="settings-card-title">AI Provider</h3>
+            <div className="settings-radio-group">
+              {(['deepseek', 'openai'] as AIProvider[]).map((p) => (
+                <label
+                  key={p}
+                  className={`settings-radio ${localSettings.aiConfig.provider === p ? 'settings-radio-checked' : ''}`}
+                >
+                  <input
+                    type="radio"
+                    name="provider"
+                    value={p}
+                    checked={localSettings.aiConfig.provider === p}
+                    onChange={() => handleProviderChange(p)}
+                  />
+                  <span>{p === 'deepseek' ? 'DeepSeek' : 'OpenAI / ChatGPT'}</span>
+                </label>
+              ))}
+            </div>
           </div>
-        </div>
 
-        <div className="settings-group">
-          <label className="settings-label" htmlFor="api-key">
-            API Key
-          </label>
-          <input
-            id="api-key"
-            type="password"
-            className="settings-input"
-            placeholder="Paste your API key here. ResumeVideo will handle the rest."
-            value={localSettings.aiConfig.apiKey}
-            onChange={(e) =>
-              setLocalSettings({
-                ...localSettings,
-                aiConfig: { ...localSettings.aiConfig, apiKey: e.target.value }
-              })
-            }
-          />
-          <p className="settings-hint">
-            Your key is stored locally on your computer. It is never sent anywhere except to the AI provider you choose.
-          </p>
-        </div>
-
-        <div className="settings-group">
-          <label className="settings-label" htmlFor="model">Model</label>
-          <input
-            id="model"
-            type="text"
-            className="settings-input"
-            value={localSettings.aiConfig.model}
-            onChange={(e) =>
-              setLocalSettings({
-                ...localSettings,
-                aiConfig: { ...localSettings.aiConfig, model: e.target.value }
-              })
-            }
-          />
-        </div>
-
-        <div className="settings-group">
-          <label className="settings-label">Video Language</label>
-          <select
-            className="settings-input"
-            value={localSettings.videoLanguage}
-            onChange={(e) =>
-              setLocalSettings({
-                ...localSettings,
-                videoLanguage: e.target.value as VideoLanguage
-              })
-            }
-          >
-            <option value="es">Spanish</option>
-            <option value="en">English</option>
-            <option value="pt">Portuguese</option>
-            <option value="fr">French</option>
-            <option value="de">German</option>
-            <option value="it">Italian</option>
-            <option value="auto">Auto-detect</option>
-          </select>
-          <p className="settings-hint">
-            Choose the language spoken in the video. ResumeVideo will transcribe and summarize in this language.
-          </p>
-        </div>
-
-        <div className="settings-group">
-          <label className="settings-label">Transcription Quality</label>
-          <div className="settings-radio-group-quality">
-            <label className="settings-radio">
-              <input
-                type="radio"
-                name="quality"
-                value="base"
-                checked={localSettings.transcriptionModel === 'base'}
-                onChange={() =>
-                  setLocalSettings({ ...localSettings, transcriptionModel: 'base' })
-                }
-              />
-              <div className="settings-radio-content">
-                <span className="settings-radio-label">Fast</span>
-                <span className="settings-radio-desc">
-                  {localSettings.videoLanguage === 'es'
-                    ? 'Good for clear English audio. Not recommended for Spanish.'
-                    : 'Faster processing, smaller app size. Best for clear audio.'}
-                </span>
-              </div>
-            </label>
-            <label className="settings-radio">
-              <input
-                type="radio"
-                name="quality"
-                value="small"
-                checked={localSettings.transcriptionModel === 'small'}
-                onChange={() =>
-                  setLocalSettings({ ...localSettings, transcriptionModel: 'small' })
-                }
-              />
-              <div className="settings-radio-content">
-                <span className="settings-radio-label">Better (Recommended)</span>
-                <span className="settings-radio-desc">
-                  More accurate transcription. Recommended for meetings, accents, noisy audio, and non-English languages. Slower and requires a larger model.
-                </span>
-              </div>
-            </label>
+          <div className="settings-card">
+            <h3 className="settings-card-title">API Key</h3>
+            <input
+              type="password"
+              className="settings-input"
+              placeholder="Paste your API key here"
+              value={localSettings.aiConfig.apiKey}
+              onChange={(e) =>
+                setLocalSettings({
+                  ...localSettings,
+                  aiConfig: { ...localSettings.aiConfig, apiKey: e.target.value }
+                })
+              }
+            />
+            <p className="settings-hint">Stored locally. Only sent to your AI provider when summarizing.</p>
           </div>
-        </div>
 
-        <div className="settings-group">
-          <label className="settings-label">Output Folder</label>
-          <div className="settings-row">
+          <div className="settings-card">
+            <h3 className="settings-card-title">Model</h3>
             <input
               type="text"
-              className="settings-input settings-input-flex"
-              value={localSettings.outputFolder}
-              readOnly
-              placeholder="Select where summaries will be saved"
+              className="settings-input"
+              value={localSettings.aiConfig.model}
+              onChange={(e) =>
+                setLocalSettings({
+                  ...localSettings,
+                  aiConfig: { ...localSettings.aiConfig, model: e.target.value }
+                })
+              }
             />
-            <button
-              className="btn btn-secondary"
-              onClick={handleSelectFolder}
-              disabled={selectingFolder}
-            >
-              {selectingFolder ? '...' : 'Browse'}
-            </button>
           </div>
-          {localSettings.outputFolder && (
-            <p className="settings-hint settings-path">{localSettings.outputFolder}</p>
-          )}
-        </div>
 
-        <div className="settings-actions">
+          <div className="settings-card">
+            <h3 className="settings-card-title">Video Language</h3>
+            <select
+              className="settings-input settings-select"
+              value={localSettings.videoLanguage}
+              onChange={(e) =>
+                setLocalSettings({
+                  ...localSettings,
+                  videoLanguage: e.target.value as VideoLanguage
+                })
+              }
+            >
+              <option value="es">Spanish</option>
+              <option value="en">English</option>
+              <option value="pt">Portuguese</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="it">Italian</option>
+              <option value="auto">Auto-detect</option>
+            </select>
+            <p className="settings-hint">Choose the language spoken in the video. The summary will be in the same language.</p>
+          </div>
+
+          <div className="settings-card">
+            <h3 className="settings-card-title">Transcription Quality</h3>
+            <div className="settings-radio-group-quality">
+              <label className={`settings-radio settings-radio-block ${localSettings.transcriptionModel === 'base' ? 'settings-radio-checked' : ''}`}>
+                <input
+                  type="radio"
+                  name="quality"
+                  value="base"
+                  checked={localSettings.transcriptionModel === 'base'}
+                  onChange={() => setLocalSettings({ ...localSettings, transcriptionModel: 'base' })}
+                />
+                <div className="settings-radio-content">
+                  <span className="settings-radio-label">Fast</span>
+                  <span className="settings-radio-desc">Faster processing, smaller app size. Best for clear audio.</span>
+                </div>
+              </label>
+              <label className={`settings-radio settings-radio-block ${localSettings.transcriptionModel === 'small' ? 'settings-radio-checked' : ''}`}>
+                <input
+                  type="radio"
+                  name="quality"
+                  value="small"
+                  checked={localSettings.transcriptionModel === 'small'}
+                  onChange={() => setLocalSettings({ ...localSettings, transcriptionModel: 'small' })}
+                />
+                <div className="settings-radio-content">
+                  <span className="settings-radio-label">Better (Recommended)</span>
+                  <span className="settings-radio-desc">More accurate transcription for meetings, accents, noisy audio, and non-English languages.</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div className="settings-card">
+            <h3 className="settings-card-title">Output Folder</h3>
+            <div className="settings-row">
+              <input
+                type="text"
+                className="settings-input settings-input-flex"
+                value={localSettings.outputFolder}
+                readOnly
+                placeholder="Select where summaries will be saved"
+              />
+              <button className="btn btn-secondary" onClick={handleSelectFolder} disabled={selectingFolder}>
+                {selectingFolder ? '...' : 'Browse'}
+              </button>
+            </div>
+            {localSettings.outputFolder && (
+              <p className="settings-hint settings-path">{localSettings.outputFolder}</p>
+            )}
+          </div>
+
+        </div>
+        <div className="panel-footer">
           <button className="btn btn-secondary" onClick={() => setPage('home')}>
             Back
           </button>
