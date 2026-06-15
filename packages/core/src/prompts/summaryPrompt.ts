@@ -39,6 +39,7 @@ Step 3 — Write the summary
 - Be concise but thorough.
 - If a section has no content, do NOT include it.
 - Do not write "None" or "N/A" sections — just skip them.
+- If the transcript contains "[No se pudo transcribir este tramo]" markers with time ranges, add a section listing those untranscribed time ranges. Use a title appropriate for the output language. Do NOT invent content for those ranges.
 - Think about what would be most useful to someone who needs to understand this content quickly.
 
 Transcript:

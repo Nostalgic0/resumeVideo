@@ -49,19 +49,33 @@ export async function processVideo(
       onProgress(`Transcribing in ${langName} (${qualityLabel})...`, 22)
     }
 
-    const { transcript, language } = await transcribe(
+    const result = await transcribe(
       audioPath,
       effectiveLanguage,
       settings.transcriptionModel,
       transcribeProgress
     )
+    const { transcript, language, untranscribedRanges } = result
     const langName = getLanguageDisplayName(language)
-    onProgress(`Transcription complete · ${langName}`, 60)
 
-    if (!transcript || transcript.trim().length === 0) {
+    const hasContent = result.segments.some(s => s.success && s.text.trim().length > 0)
+
+    if (!hasContent) {
       throw new Error(
-        'No speech detected in the video. The file may not contain audio or the audio may be too noisy.'
+        'The video has audio but Whisper could not transcribe any understandable speech. ' +
+        'Possible causes: excessive noise, very low volume, multiple overlapping voices, ' +
+        'or a language not supported by the model. Try a different language setting or a different video.'
       )
+    }
+
+    if (untranscribedRanges.length > 0) {
+      console.log('[ResumeVideo] Some segments could not be transcribed:', untranscribedRanges)
+      const rangeList = untranscribedRanges
+        .map(r => `${formatTime(r.startSeconds)}-${formatTime(r.endSeconds)}`)
+        .join(', ')
+      onProgress(`Transcription partial · ${langName} · Missing: ${rangeList}`, 60)
+    } else {
+      onProgress(`Transcription complete · ${langName}`, 60)
     }
 
     const summaryLang = language

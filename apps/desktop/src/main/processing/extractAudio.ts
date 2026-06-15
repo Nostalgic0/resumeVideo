@@ -27,6 +27,7 @@ export async function extractAudio(videoPath: string): Promise<string> {
         '-acodec', 'pcm_s16le',
         '-ar', '16000',
         '-ac', '1',
+        '-af', 'highpass=f=80,lowpass=f=8000,dynaudnorm=f=150:g=15',
         '-y',
         outputPath
       ],
@@ -67,7 +68,7 @@ export async function getAudioDuration(audioPath: string): Promise<number> {
   })
 }
 
-function getFfmpegPath(): string {
+export function getFfmpegPath(): string {
   const exeName = process.platform === 'win32' ? 'ffmpeg.exe' : 'ffmpeg'
 
   if (!app.isPackaged) {
