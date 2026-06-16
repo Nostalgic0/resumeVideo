@@ -84,21 +84,9 @@ body {
 .sidebar-logo {
   width: 26px;
   height: 26px;
-  background: var(--accent);
   border-radius: var(--radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
   box-shadow: 0 0 12px rgba(124, 58, 237, 0.3);
   flex-shrink: 0;
-}
-
-.sidebar-logo::after {
-  content: 'R';
-  color: white;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.5px;
 }
 
 .sidebar-name {
@@ -360,6 +348,12 @@ body {
   justify-content: center;
   color: var(--accent);
   flex-shrink: 0;
+}
+
+.home-hero-img {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
 }
 
 .home-hero-title {

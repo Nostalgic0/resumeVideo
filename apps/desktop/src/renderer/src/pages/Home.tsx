@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore'
 import Dropzone from '../components/Dropzone'
 import RvSelect from '../components/Select'
 import type { AIProvider, AIModelInfo, WhisperModelInfo } from '@resumevideo/core'
+import appIcon from '../assets/icon.png'
 
 function getTranscriptionLabel(model: string): string {
   if (model.includes('large')) return 'Large'
@@ -148,10 +149,7 @@ export default function Home(): JSX.Element {
         <div className="home-main">
           <div className="home-hero">
             <div className="home-hero-icon">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="23 7 16 12 23 17 23 7" />
-                <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
-              </svg>
+              <img src={appIcon} alt="ResumeVideo" className="home-hero-img" />
             </div>
             <div>
               <h1 className="home-hero-title">Summarize your videos with AI</h1>

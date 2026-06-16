@@ -6,6 +6,7 @@ import Settings from './pages/Settings'
 import Help from './pages/Help'
 import Processing from './pages/Processing'
 import Result from './pages/Result'
+import appIcon from './assets/icon.png'
 
 const NAV_ITEMS: { page: Page; label: string; icon: string }[] = [
   { page: 'home', label: 'New Summary', icon: 'M12 5v14M5 12h14' },
@@ -21,7 +22,7 @@ function Sidebar(): JSX.Element {
   return (
     <nav className="sidebar">
       <div className="sidebar-brand">
-        <span className="sidebar-logo" />
+        <img src={appIcon} alt="ResumeVideo" className="sidebar-logo" />
         <span className="sidebar-name">ResumeVideo</span>
       </div>
       <div className="sidebar-nav">
