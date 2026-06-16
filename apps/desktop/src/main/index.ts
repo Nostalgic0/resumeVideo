@@ -1,7 +1,19 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
+import { existsSync } from 'fs'
 import { registerIpcHandlers } from './ipc'
+
+function getIconPath(): string {
+  const paths = [
+    join(process.resourcesPath || '', 'resources', 'icon.png'),
+    join(__dirname, '..', '..', '..', '..', 'resources', 'icon.png')
+  ]
+  for (const p of paths) {
+    if (existsSync(p)) return p
+  }
+  return paths[1]
+}
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -11,7 +23,7 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     title: 'ResumeVideo',
-    icon: join(__dirname, '..', '..', 'build', 'icon.png'),
+    icon: getIconPath(),
     backgroundColor: '#0f0f0f',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
