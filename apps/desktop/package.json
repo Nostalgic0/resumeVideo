@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@electron-toolkit/utils": "^3.0.0",
+    "@radix-ui/react-select": "^2.3.1",
     "@resumevideo/core": "*",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",

@@ -49,10 +49,11 @@ interface AppState {
 }
 
 const defaultSettings: AppSettings = {
+  providerConfigs: {},
   aiConfig: DEFAULT_DEEPSEEK_CONFIG,
   outputFolder: '',
   videoLanguage: 'es',
-  transcriptionModel: 'base',
+  transcriptionModel: 'ggml-base.bin',
   lastProvider: 'deepseek'
 }
 

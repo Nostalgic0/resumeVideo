@@ -1,8 +1,8 @@
 import { app, ipcMain, dialog, BrowserWindow, shell } from 'electron'
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { join, dirname, basename } from 'path'
-import type { AppSettings } from '@resumevideo/core'
-import { DEFAULT_DEEPSEEK_CONFIG } from '@resumevideo/core'
+import type { AppSettings, AIModelInfo, WhisperModelInfo, AIConfig } from '@resumevideo/core'
+import { DEFAULT_DEEPSEEK_CONFIG, DEFAULT_OPENAI_CONFIG } from '@resumevideo/core'
 import { processVideo } from './processing/pipeline'
 
 interface SummaryEntry {
@@ -29,6 +29,7 @@ function getAppDataPath(): string {
   }
 
 const defaultSettings: AppSettings = {
+  providerConfigs: {},
   aiConfig: DEFAULT_DEEPSEEK_CONFIG,
   outputFolder: '',
   videoLanguage: 'es',
@@ -36,13 +37,40 @@ const defaultSettings: AppSettings = {
   lastProvider: 'deepseek'
 }
 
+function migrateSettings(parsed: Record<string, unknown>): AppSettings {
+  const settings = { ...defaultSettings, ...parsed } as AppSettings
+
+  if (!settings.providerConfigs || typeof settings.providerConfigs !== 'object') {
+    settings.providerConfigs = {}
+  }
+
+  const pcs = settings.providerConfigs as Record<string, unknown>
+  if (!pcs[settings.aiConfig.provider]) {
+    ;(settings.providerConfigs as Record<string, AIConfig>)[settings.aiConfig.provider] = settings.aiConfig
+  }
+
+  if (settings.transcriptionModel === 'base' || settings.transcriptionModel === 'small') {
+    const filename = settings.transcriptionModel === 'small' ? 'ggml-small.bin' : 'ggml-base.bin'
+    if (!existsSync(getWhisperModelPath(filename))) {
+      const available = listWhisperModelsFromDisk()
+      if (available.length > 0) {
+        settings.transcriptionModel = available[0].id
+      }
+    } else {
+      settings.transcriptionModel = filename
+    }
+  }
+
+  return settings
+}
+
 function loadSettings(): AppSettings {
   try {
     const path = getSettingsPath()
     if (existsSync(path)) {
       const data = readFileSync(path, 'utf-8')
-      const parsed = JSON.parse(data) as AppSettings
-      return { ...defaultSettings, ...parsed }
+      const parsed = JSON.parse(data) as Record<string, unknown>
+      return migrateSettings(parsed)
     }
   } catch {
     // Return defaults if file is corrupt or missing
@@ -57,6 +85,67 @@ function saveSettings(settings: AppSettings): void {
     mkdirSync(dir, { recursive: true })
   }
   writeFileSync(path, JSON.stringify(settings, null, 2), 'utf-8')
+}
+
+function getWhisperModelsDir(): string | null {
+  const searchPaths: string[] = []
+
+  if (!app.isPackaged) {
+    searchPaths.push(
+      join(__dirname, '..', '..', '..', '..', 'resources', 'models')
+    )
+  }
+
+  if (process.resourcesPath) {
+    searchPaths.push(join(process.resourcesPath, 'resources', 'models'))
+  }
+
+  for (const p of searchPaths) {
+    if (existsSync(p)) return p
+  }
+
+  return null
+}
+
+function getWhisperModelPath(filename: string): string {
+  const dir = getWhisperModelsDir()
+  if (dir) {
+    const full = join(dir, filename)
+    if (existsSync(full)) return full
+  }
+  return join(process.resourcesPath || '', 'resources', 'models', filename)
+}
+
+function listWhisperModelsFromDisk(): WhisperModelInfo[] {
+  const dir = getWhisperModelsDir()
+  if (!dir) return []
+
+  const modelLabels: Record<string, string> = {
+    'ggml-tiny.bin': 'Tiny',
+    'ggml-tiny.en.bin': 'Tiny (English only)',
+    'ggml-base.bin': 'Fast (base)',
+    'ggml-base.en.bin': 'Fast - English only (base)',
+    'ggml-small.bin': 'Better (small)',
+    'ggml-small.en.bin': 'Better - English only (small)',
+    'ggml-medium.bin': 'Medium',
+    'ggml-medium.en.bin': 'Medium (English only)',
+    'ggml-large.bin': 'Large',
+    'ggml-large-v3.bin': 'Large v3',
+    'ggml-large-v3-turbo.bin': 'Large v3 Turbo'
+  }
+
+  try {
+    const files = readdirSync(dir)
+    return files
+      .filter((f) => f.endsWith('.bin'))
+      .map((f) => ({
+        id: f,
+        label: modelLabels[f] || f.replace(/^ggml-/, '').replace(/\.bin$/, '')
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label))
+  } catch {
+    return []
+  }
 }
 
 export function registerIpcHandlers(): void {
@@ -142,6 +231,53 @@ export function registerIpcHandlers(): void {
   ipcMain.handle('save-settings', (_event, settings: AppSettings) => {
     saveSettings(settings)
     return true
+  })
+
+  ipcMain.handle('list-ai-models', async (_event, config: AIConfig) => {
+    if (!config.apiKey || config.apiKey.trim() === '') {
+      return []
+    }
+
+    try {
+      const base = config.baseUrl.replace(/\/+$/, '')
+      const url = `${base}/models`
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 15000)
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${config.apiKey}`
+        },
+        signal: controller.signal
+      })
+
+      clearTimeout(timeout)
+
+      if (!response.ok) {
+        console.error(`[ResumeVideo] list-ai-models failed: ${response.status}`)
+        return []
+      }
+
+      const data = (await response.json()) as {
+        data?: Array<{ id: string; owned_by?: string }>
+      }
+
+      if (!data.data || !Array.isArray(data.data)) {
+        return []
+      }
+
+      return data.data
+        .filter((m) => m.id && typeof m.id === 'string')
+        .map((m) => ({ id: m.id, ownedBy: m.owned_by }))
+    } catch (err) {
+      console.error('[ResumeVideo] list-ai-models error:', err)
+      return []
+    }
+  })
+
+  ipcMain.handle('list-whisper-models', () => {
+    return listWhisperModelsFromDisk()
   })
 
   ipcMain.handle('process-video', async (event, videoPath: string, settings: AppSettings) => {

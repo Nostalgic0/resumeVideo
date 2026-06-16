@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
-import type { AppSettings } from '@resumevideo/core'
+import type { AppSettings, AIConfig, AIModelInfo, WhisperModelInfo } from '@resumevideo/core'
 
 export interface ProgressEvent {
   step: string
@@ -28,6 +28,10 @@ const api = {
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: AppSettings): Promise<boolean> =>
     ipcRenderer.invoke('save-settings', settings),
+  listAiModels: (config: AIConfig): Promise<AIModelInfo[]> =>
+    ipcRenderer.invoke('list-ai-models', config),
+  listWhisperModels: (): Promise<WhisperModelInfo[]> =>
+    ipcRenderer.invoke('list-whisper-models'),
   getPathForFile: (file: File): string => webUtils.getPathForFile(file),
   listSummaries: (): Promise<SummaryEntry[]> =>
     ipcRenderer.invoke('list-summaries'),

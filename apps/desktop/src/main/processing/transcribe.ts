@@ -41,7 +41,7 @@ function formatTime(totalSeconds: number): string {
 export async function transcribe(
   audioPath: string,
   preferredLanguage: string = 'auto',
-  modelType: 'base' | 'small' = 'base',
+  modelType: string = 'ggml-base.bin',
   onProgress?: ProgressCallback
 ): Promise<TranscriptionResult> {
   console.log(`[ResumeVideo] Transcribing with model: ${modelType}`)
@@ -277,7 +277,7 @@ function updateSegmentProgress(
 
 async function detectLanguage(
   audioPath: string,
-  modelType: 'base' | 'small' = 'base'
+  modelType: string = 'ggml-base.bin'
 ): Promise<string> {
   const whisperPath = getWhisperPath()
   const modelPath = getModelPath(modelType)
@@ -327,7 +327,7 @@ async function detectLanguage(
 async function transcribeWithLanguage(
   audioPath: string,
   language: string,
-  modelType: 'base' | 'small' = 'base',
+  modelType: string = 'ggml-base.bin',
   totalSeconds: number = 0,
   onProgress?: ProgressCallback
 ): Promise<string> {
@@ -465,7 +465,33 @@ function getWhisperPath(): string {
   return 'whisper-cli'
 }
 
-function getModelPath(modelType: 'base' | 'small' = 'base'): string {
+function getModelPath(modelType: string = 'ggml-base.bin'): string {
+  if (modelType.endsWith('.bin')) {
+    const searchPaths: string[] = []
+
+    if (!app.isPackaged) {
+      searchPaths.push(
+        join(__dirname, '..', '..', '..', '..', 'resources', 'models')
+      )
+    }
+
+    if (process.resourcesPath) {
+      searchPaths.push(join(process.resourcesPath, 'resources', 'models'))
+    }
+
+    for (const searchPath of searchPaths) {
+      const fullPath = join(searchPath, modelType)
+      if (existsSync(fullPath)) {
+        return fullPath
+      }
+    }
+
+    return join(
+      process.resourcesPath || join(__dirname, '..', '..', '..', '..'),
+      'resources', 'models', modelType
+    )
+  }
+
   const modelNames: Record<string, string[]> = {
     base: ['ggml-base.bin', 'ggml-base.en.bin'],
     small: ['ggml-small.bin', 'ggml-small.en.bin']

@@ -27,7 +27,7 @@ export async function processVideo(
 
     const effectiveLanguage = settings.videoLanguage
     const isAuto = effectiveLanguage === 'auto'
-    const qualityLabel = settings.transcriptionModel === 'small' ? 'Better' : 'Fast'
+    const qualityLabel = getModelQualityLabel(settings.transcriptionModel)
 
     const transcribeProgress = (tp: TranscriptionProgress): void => {
       const pct = Math.round(25 + (tp.percent * 0.35))
@@ -124,4 +124,15 @@ function getLanguageDisplayName(code: string): string {
     no: 'Norwegian', cs: 'Czech', ro: 'Romanian', hu: 'Hungarian', uk: 'Ukrainian'
   }
   return map[code] || code
+}
+
+function getModelQualityLabel(model: string): string {
+  if (model.includes('large')) return 'Large'
+  if (model.includes('medium')) return 'Medium'
+  if (model.includes('small')) return 'Better'
+  if (model.includes('tiny')) return 'Tiny'
+  if (model.includes('base')) return 'Fast'
+  if (model === 'small') return 'Better'
+  if (model === 'base') return 'Fast'
+  return model
 }

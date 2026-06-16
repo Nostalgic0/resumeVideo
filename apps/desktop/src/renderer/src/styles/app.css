@@ -647,6 +647,102 @@ body {
   cursor: pointer;
 }
 
+/* ========== Radix Select ========== */
+.rv-select-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-family: var(--font);
+  cursor: pointer;
+  outline: none;
+  transition: all var(--transition);
+}
+
+.rv-select-trigger:hover:not([data-disabled]) {
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.rv-select-trigger:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.rv-select-trigger[data-state='open'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.rv-select-trigger[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rv-select-trigger[data-placeholder] {
+  color: var(--text-muted);
+}
+
+.rv-select-icon {
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.rv-select-content {
+  overflow: hidden;
+  background: #1c1c21;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+  z-index: 9999;
+  min-width: var(--radix-select-trigger-width);
+}
+
+.rv-select-viewport {
+  padding: 4px;
+}
+
+.rv-select-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--text-secondary);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.1s ease;
+  user-select: none;
+}
+
+.rv-select-item[data-highlighted] {
+  background: var(--accent-soft);
+  color: var(--text-primary);
+}
+
+.rv-select-item[data-disabled] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rv-select-item-indicator {
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
 /* ========== Processing ========== */
 .processing-page {
   padding: 0;

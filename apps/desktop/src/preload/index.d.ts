@@ -12,6 +12,8 @@ export interface SummaryEntry {
   date: string
 }
 
+import type { AppSettings, AIConfig, AIModelInfo, WhisperModelInfo } from '@resumevideo/core'
+
 export interface ApiType {
   selectVideo: () => Promise<string | null>
   selectOutputFolder: () => Promise<string | null>
@@ -20,6 +22,8 @@ export interface ApiType {
   processVideo: (videoPath: string, settings: AppSettings) => Promise<string>
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<boolean>
+  listAiModels: (config: AIConfig) => Promise<AIModelInfo[]>
+  listWhisperModels: () => Promise<WhisperModelInfo[]>
   getPathForFile: (file: File) => string
   listSummaries: () => Promise<SummaryEntry[]>
   readSummary: (filePath: string) => Promise<string>
@@ -27,8 +31,6 @@ export interface ApiType {
   onComplete: (callback: (outputPath: string) => void) => () => void
   onError: (callback: (error: string) => void) => () => void
 }
-
-import type { AppSettings } from '@resumevideo/core'
 
 declare global {
   interface Window {

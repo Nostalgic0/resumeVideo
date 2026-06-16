@@ -8,6 +8,16 @@ export interface AIConfig {
   temperature: number
 }
 
+export interface AIModelInfo {
+  id: string
+  ownedBy?: string
+}
+
+export interface WhisperModelInfo {
+  id: string
+  label: string
+}
+
 export interface SummaryRequest {
   transcript: string
   detectedLanguage: string
@@ -42,9 +52,10 @@ export const DEFAULT_OPENAI_CONFIG: AIConfig = {
 }
 
 export type VideoLanguage = 'es' | 'en' | 'pt' | 'fr' | 'de' | 'it' | 'auto'
-export type TranscriptionModel = 'base' | 'small'
+export type TranscriptionModel = string
 
 export interface AppSettings {
+  providerConfigs: Partial<Record<AIProvider, AIConfig>>
   aiConfig: AIConfig
   outputFolder: string
   videoLanguage: VideoLanguage
