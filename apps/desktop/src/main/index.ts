@@ -11,6 +11,7 @@ function createWindow(): void {
     minHeight: 600,
     show: false,
     title: 'ResumeVideo',
+    icon: join(__dirname, '..', '..', 'build', 'icon.png'),
     backgroundColor: '#0f0f0f',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
