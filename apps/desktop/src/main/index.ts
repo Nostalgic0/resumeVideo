@@ -1,5 +1,6 @@
 import { app, shell, BrowserWindow, protocol, net } from 'electron'
 import { join } from 'path'
+import { pathToFileURL } from 'url'
 import { is } from '@electron-toolkit/utils'
 import { existsSync } from 'fs'
 import { registerIpcHandlers } from './ipc'
@@ -49,10 +50,15 @@ function createWindow(): void {
   }
 }
 
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'local-file', privileges: { bypassCSP: true, stream: true, supportFetchAPI: true } }
+])
+
 app.whenReady().then(() => {
   protocol.handle('local-file', (request) => {
-    const filePath = request.url.slice('local-file:///'.length)
-    return net.fetch(`file:///${filePath}`)
+    const url = new URL(request.url)
+    const decodedPath = decodeURIComponent(url.pathname)
+    return net.fetch(pathToFileURL(decodedPath).toString())
   })
 
   registerIpcHandlers()

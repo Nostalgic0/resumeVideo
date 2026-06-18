@@ -21,6 +21,12 @@ function secsToTimeString(secs: number): string {
   return `${m}:${s.toString().padStart(2, '0')}`
 }
 
+function buildVideoSrc(filePath: string): string {
+  const normalized = filePath.replace(/\\/g, '/')
+  const encoded = encodeURI(normalized).replace(/#/g, '%23')
+  return `local-file:///${encoded}`
+}
+
 export default function Trim(): JSX.Element {
   const { videoPath, videoRange, setVideoRange, setPage, setError } = useStore()
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -28,6 +34,7 @@ export default function Trim(): JSX.Element {
   const [currentTime, setCurrentTime] = useState(0)
   const [startInput, setStartInput] = useState(videoRange ? secsToTimeString(videoRange.startSeconds) : '0:00')
   const [endInput, setEndInput] = useState(videoRange ? secsToTimeString(videoRange.endSeconds) : '0:00')
+  const [videoError, setVideoError] = useState(false)
 
   useEffect(() => {
     if (!videoPath) {
@@ -53,11 +60,17 @@ export default function Trim(): JSX.Element {
       setCurrentTime(video.currentTime)
     }
 
+    const onError = () => {
+      setVideoError(true)
+    }
+
     video.addEventListener('loadedmetadata', onLoaded)
     video.addEventListener('timeupdate', onTimeUpdate)
+    video.addEventListener('error', onError)
     return () => {
       video.removeEventListener('loadedmetadata', onLoaded)
       video.removeEventListener('timeupdate', onTimeUpdate)
+      video.removeEventListener('error', onError)
     }
   }, [videoPath])
 
@@ -109,7 +122,7 @@ export default function Trim(): JSX.Element {
     )
   }
 
-  const videoSrc = `local-file:///${videoPath.replace(/\\/g, '/')}`
+  const videoSrc = buildVideoSrc(videoPath)
 
   return (
     <div className="page trim-page">
@@ -123,13 +136,22 @@ export default function Trim(): JSX.Element {
 
         <div className="panel-body trim-body">
           <div className="trim-video-container">
-            <video
-              ref={videoRef}
-              src={videoSrc}
-              className="trim-video"
-              controls
-              preload="metadata"
-            />
+            {videoError ? (
+              <div className="trim-video-error">
+                <p>Could not load video preview.</p>
+                <p className="trim-video-error-sub">
+                  You can still use the buttons below to summarize the full video.
+                </p>
+              </div>
+            ) : (
+              <video
+                ref={videoRef}
+                src={videoSrc}
+                className="trim-video"
+                controls
+                preload="metadata"
+              />
+            )}
           </div>
 
           {duration > 0 && (
