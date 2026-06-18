@@ -1,8 +1,7 @@
-import { app, shell, BrowserWindow, protocol, net } from 'electron'
+import { app, shell, BrowserWindow, protocol } from 'electron'
 import { join } from 'path'
-import { pathToFileURL } from 'url'
 import { is } from '@electron-toolkit/utils'
-import { existsSync } from 'fs'
+import { existsSync, statSync, createReadStream } from 'fs'
 import { registerIpcHandlers } from './ipc'
 
 function getIconPath(): string {
@@ -54,12 +53,73 @@ protocol.registerSchemesAsPrivileged([
   { scheme: 'local-file', privileges: { standard: true, secure: true, bypassCSP: true, stream: true, supportFetchAPI: true } }
 ])
 
+function parseRangeHeader(rangeHeader: string, fileSize: number): { start: number; end: number } {
+  const match = rangeHeader.match(/bytes=(\d+)-(\d*)/)
+  if (!match) return { start: 0, end: fileSize - 1 }
+  const start = parseInt(match[1], 10)
+  const end = match[2] ? parseInt(match[2], 10) : fileSize - 1
+  return { start, end: Math.min(end, fileSize - 1) }
+}
+
+function serveFile(filePath: string, rangeHeader?: string): Response {
+  if (!existsSync(filePath)) {
+    return new Response('Not Found', { status: 404 })
+  }
+
+  const stat = statSync(filePath)
+  const fileSize = stat.size
+
+  if (rangeHeader) {
+    const { start, end } = parseRangeHeader(rangeHeader, fileSize)
+    const chunkSize = end - start + 1
+
+    const stream = createReadStream(filePath, { start, end })
+    const readable = new ReadableStream({
+      start(controller) {
+        stream.on('data', (chunk) => controller.enqueue(new Uint8Array(chunk as Buffer)))
+        stream.on('end', () => controller.close())
+        stream.on('error', (err) => controller.error(err))
+      },
+      cancel() { stream.destroy() }
+    })
+
+    return new Response(readable, {
+      status: 206,
+      headers: {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': String(chunkSize),
+        'Content-Type': 'video/mp4'
+      }
+    })
+  }
+
+  const stream = createReadStream(filePath)
+  const readable = new ReadableStream({
+    start(controller) {
+      stream.on('data', (chunk) => controller.enqueue(new Uint8Array(chunk as Buffer)))
+      stream.on('end', () => controller.close())
+      stream.on('error', (err) => controller.error(err))
+    },
+    cancel() { stream.destroy() }
+  })
+
+  return new Response(readable, {
+    status: 200,
+    headers: {
+      'Content-Length': String(fileSize),
+      'Accept-Ranges': 'bytes',
+      'Content-Type': 'video/mp4'
+    }
+  })
+}
+
 app.whenReady().then(() => {
   protocol.handle('local-file', (request) => {
     const url = new URL(request.url)
     const rawPath = url.searchParams.get('path')
     if (!rawPath) return new Response('Missing path', { status: 400 })
-    return net.fetch(pathToFileURL(rawPath).toString())
+    return serveFile(rawPath, request.headers.get('range') ?? undefined)
   })
 
   registerIpcHandlers()

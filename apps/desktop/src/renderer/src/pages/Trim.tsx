@@ -29,6 +29,7 @@ export default function Trim(): JSX.Element {
 
   const [draggingStart, setDraggingStart] = useState(false)
   const [draggingEnd, setDraggingEnd] = useState(false)
+  const [seekDragging, setSeekDragging] = useState(false)
 
   useEffect(() => {
     if (!videoPath) {
@@ -94,10 +95,14 @@ export default function Trim(): JSX.Element {
     if (v.paused) { v.play().catch(() => {}) } else { v.pause() }
   }, [])
 
-  const handleSeekClick = useCallback((e: React.MouseEvent) => {
+  const handleSeekPointerDown = useCallback((e: React.PointerEvent) => {
+    e.preventDefault()
+    const track = seekTrackRef.current
+    if (track) track.setPointerCapture(e.pointerId)
     const t = clientXToSecs(e.clientX, seekTrackRef)
     if (videoRef.current) videoRef.current.currentTime = t
     setCurrentTime(t)
+    setSeekDragging(true)
   }, [clientXToSecs])
 
   const handleStartMouseDown = useCallback((e: React.MouseEvent) => {
@@ -145,6 +150,27 @@ export default function Trim(): JSX.Element {
       window.removeEventListener('mouseup', onUp)
     }
   }, [draggingStart, draggingEnd, clientXToSecs, endSecs, startSecs, duration])
+
+  useEffect(() => {
+    if (!seekDragging) return
+
+    const onMove = (e: PointerEvent) => {
+      const t = clientXToSecs(e.clientX, seekTrackRef)
+      if (videoRef.current) videoRef.current.currentTime = t
+      setCurrentTime(t)
+    }
+
+    const onUp = () => {
+      setSeekDragging(false)
+    }
+
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('pointerup', onUp)
+    return () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+    }
+  }, [seekDragging, clientXToSecs])
 
   const isValid = duration > 0 && startSecs >= 0 && endSecs >= startSecs + MIN_RANGE_SECS && endSecs <= duration
 
@@ -241,7 +267,7 @@ export default function Trim(): JSX.Element {
                 <div
                   ref={seekTrackRef}
                   className="trim-seek-track"
-                  onMouseDown={handleSeekClick}
+                  onPointerDown={handleSeekPointerDown}
                 >
                   <div className="trim-seek-track-bg" />
                   <div
