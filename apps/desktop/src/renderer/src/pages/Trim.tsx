@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from '../store/useStore'
 
+const MIN_RANGE_SECS = 1
+
 function fmtTime(totalSeconds: number): string {
   if (!totalSeconds || totalSeconds <= 0) return '0:00'
   const m = Math.floor(totalSeconds / 60)
@@ -15,7 +17,8 @@ function buildVideoSrc(filePath: string): string {
 export default function Trim(): JSX.Element {
   const { videoPath, videoRange, setVideoRange, setPage, setError } = useStore()
   const videoRef = useRef<HTMLVideoElement>(null)
-  const trackRef = useRef<HTMLDivElement>(null)
+  const seekTrackRef = useRef<HTMLDivElement>(null)
+  const rangeTrackRef = useRef<HTMLDivElement>(null)
   const [duration, setDuration] = useState(0)
   const [currentTime, setCurrentTime] = useState(0)
   const [videoError, setVideoError] = useState(false)
@@ -24,8 +27,8 @@ export default function Trim(): JSX.Element {
   const [startSecs, setStartSecs] = useState(videoRange?.startSeconds ?? 0)
   const [endSecs, setEndSecs] = useState(videoRange?.endSeconds ?? 0)
 
-  const [dragging, setDragging] = useState<'start' | 'end' | 'playhead' | null>(null)
-  const draggingRef = useRef<'start' | 'end' | 'playhead' | null>(null)
+  const [draggingStart, setDraggingStart] = useState(false)
+  const [draggingEnd, setDraggingEnd] = useState(false)
 
   useEffect(() => {
     if (!videoPath) {
@@ -67,12 +70,17 @@ export default function Trim(): JSX.Element {
     }
   }, [videoPath])
 
-  const pctFromSecs = useCallback((s: number) => {
+  const secsFromPct = useCallback((pct: number): number => {
+    if (duration <= 0) return 0
+    return Math.max(0, Math.min(pct, 100)) / 100 * duration
+  }, [duration])
+
+  const pctFromSecs = useCallback((s: number): number => {
     if (duration <= 0) return 0
     return Math.max(0, Math.min(100, (s / duration) * 100))
   }, [duration])
 
-  const secsFromClientX = useCallback((clientX: number): number => {
+  const clientXToSecs = useCallback((clientX: number, trackRef: React.RefObject<HTMLDivElement | null>): number => {
     const track = trackRef.current
     if (!track || duration <= 0) return 0
     const rect = track.getBoundingClientRect()
@@ -86,55 +94,48 @@ export default function Trim(): JSX.Element {
     if (v.paused) { v.play().catch(() => {}) } else { v.pause() }
   }, [])
 
-  const handleTrackMouseDown = useCallback((e: React.MouseEvent) => {
-    const t = secsFromClientX(e.clientX)
-    const startPct = pctFromSecs(startSecs)
-    const endPct = pctFromSecs(endSecs)
-    const clickPct = (t / duration) * 100
+  const handleSeekClick = useCallback((e: React.MouseEvent) => {
+    const t = clientXToSecs(e.clientX, seekTrackRef)
+    if (videoRef.current) videoRef.current.currentTime = t
+    setCurrentTime(t)
+  }, [clientXToSecs])
 
-    const handleRadius = 7
-    const track = trackRef.current
-    if (!track) return
-    const rect = track.getBoundingClientRect()
-    const trackWidth = rect.width
-    const startX = rect.left + (startPct / 100) * trackWidth
-    const endX = rect.left + (endPct / 100) * trackWidth
+  const handleStartMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    setDraggingStart(true)
+  }, [])
 
-    if (Math.abs(e.clientX - startX) <= handleRadius + 6) {
-      setDragging('start')
-      draggingRef.current = 'start'
-    } else if (Math.abs(e.clientX - endX) <= handleRadius + 6) {
-      setDragging('end')
-      draggingRef.current = 'end'
+  const handleEndMouseDown = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation()
+    setDraggingEnd(true)
+  }, [])
+
+  const handleRangeTrackClick = useCallback((e: React.MouseEvent) => {
+    const t = clientXToSecs(e.clientX, rangeTrackRef)
+    const distStart = Math.abs(t - startSecs)
+    const distEnd = Math.abs(t - endSecs)
+    if (distStart <= distEnd) {
+      setStartSecs(Math.max(0, Math.min(t, endSecs - MIN_RANGE_SECS)))
     } else {
-      if (videoRef.current && duration > 0) {
-        videoRef.current.currentTime = t
-      }
-      setCurrentTime(t)
-      setDragging('playhead')
-      draggingRef.current = 'playhead'
+      setEndSecs(Math.min(duration, Math.max(t, startSecs + MIN_RANGE_SECS)))
     }
-  }, [startSecs, endSecs, duration, pctFromSecs, secsFromClientX])
+  }, [clientXToSecs, startSecs, endSecs, duration])
 
   useEffect(() => {
-    if (!dragging) return
+    if (!draggingStart && !draggingEnd) return
 
     const onMove = (e: MouseEvent) => {
-      const t = secsFromClientX(e.clientX)
-      const current = draggingRef.current
-      if (current === 'start') {
-        setStartSecs(Math.max(0, Math.min(t, endSecs - 0.1)))
-      } else if (current === 'end') {
-        setEndSecs(Math.min(duration, Math.max(t, startSecs + 0.1)))
-      } else if (current === 'playhead') {
-        if (videoRef.current) videoRef.current.currentTime = Math.max(0, Math.min(t, duration))
-        setCurrentTime(Math.max(0, Math.min(t, duration)))
+      const t = clientXToSecs(e.clientX, rangeTrackRef)
+      if (draggingStart) {
+        setStartSecs(Math.max(0, Math.min(t, endSecs - MIN_RANGE_SECS)))
+      } else if (draggingEnd) {
+        setEndSecs(Math.min(duration, Math.max(t, startSecs + MIN_RANGE_SECS)))
       }
     }
 
     const onUp = () => {
-      setDragging(null)
-      draggingRef.current = null
+      setDraggingStart(false)
+      setDraggingEnd(false)
     }
 
     window.addEventListener('mousemove', onMove)
@@ -143,17 +144,27 @@ export default function Trim(): JSX.Element {
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [dragging, secsFromClientX, endSecs, startSecs, duration])
+  }, [draggingStart, draggingEnd, clientXToSecs, endSecs, startSecs, duration])
 
-  const isValid = duration > 0 && startSecs >= 0 && endSecs > startSecs && endSecs <= duration
+  const isValid = duration > 0 && startSecs >= 0 && endSecs >= startSecs + MIN_RANGE_SECS && endSecs <= duration
 
   const handleSetStart = useCallback(() => {
-    setStartSecs(Math.max(0, currentTime))
-  }, [currentTime])
+    const t = Math.max(0, currentTime)
+    if (t >= endSecs - MIN_RANGE_SECS) {
+      setStartSecs(Math.max(0, endSecs - MIN_RANGE_SECS - 1))
+    } else {
+      setStartSecs(t)
+    }
+  }, [currentTime, endSecs])
 
   const handleSetEnd = useCallback(() => {
-    setEndSecs(Math.min(duration, currentTime))
-  }, [currentTime, duration])
+    const t = Math.min(duration, currentTime)
+    if (t <= startSecs + MIN_RANGE_SECS) {
+      setEndSecs(Math.min(duration, startSecs + MIN_RANGE_SECS + 1))
+    } else {
+      setEndSecs(t)
+    }
+  }, [currentTime, duration, startSecs])
 
   const handleSummarize = useCallback(() => {
     if (!isValid) return
@@ -188,7 +199,7 @@ export default function Trim(): JSX.Element {
         <div className="panel-header">
           <h2 className="panel-title">Select Range to Summarize</h2>
           <p className="panel-subtitle">
-            Drag the handles on the timeline to choose start and end, or click to seek.
+            Use the top bar to preview. Drag the handles below to choose start and end.
           </p>
         </div>
 
@@ -225,44 +236,57 @@ export default function Trim(): JSX.Element {
 
           {duration > 0 && (
             <>
-              <div className="trim-range-times">
-                <span className="trim-range-time-label">Start</span>
-                <span className="trim-range-time-value">{fmtTime(startSecs)}</span>
-                <span className="trim-range-time-sep">–</span>
-                <span className="trim-range-time-label">End</span>
-                <span className="trim-range-time-value">{fmtTime(endSecs)}</span>
-                <span className="trim-range-time-sep">|</span>
-                <span className="trim-range-time-label">Duration</span>
-                <span className="trim-range-time-value trim-duration">{fmtTime(endSecs - startSecs)}</span>
+              <div className="trim-section">
+                <div className="trim-section-label">Preview</div>
+                <div
+                  ref={seekTrackRef}
+                  className="trim-seek-track"
+                  onMouseDown={handleSeekClick}
+                >
+                  <div className="trim-seek-track-bg" />
+                  <div
+                    className="trim-seek-playhead"
+                    style={{ left: `${curPct}%` }}
+                  />
+                </div>
+                <div className="trim-seek-labels">
+                  <span>{fmtTime(currentTime)}</span>
+                  <span>{fmtTime(duration)}</span>
+                </div>
               </div>
 
-              <div
-                ref={trackRef}
-                className="trim-track"
-                onMouseDown={handleTrackMouseDown}
-              >
-                <div className="trim-track-bg" />
+              <div className="trim-section">
+                <div className="trim-section-label">Range</div>
                 <div
-                  className="trim-track-range"
-                  style={{ left: `${startPct}%`, width: `${endPct - startPct}%` }}
-                />
-                <div
-                  className={`trim-handle trim-handle-start ${dragging === 'start' ? 'trim-handle-active' : ''}`}
-                  style={{ left: `${startPct}%` }}
-                />
-                <div
-                  className={`trim-handle trim-handle-end ${dragging === 'end' ? 'trim-handle-active' : ''}`}
-                  style={{ left: `${endPct}%` }}
-                />
-                <div
-                  className="trim-playhead"
-                  style={{ left: `${curPct}%` }}
-                />
-              </div>
-
-              <div className="trim-track-labels">
-                <span className="trim-current-time">{fmtTime(currentTime)}</span>
-                <span className="trim-total-time">{fmtTime(duration)}</span>
+                  ref={rangeTrackRef}
+                  className="trim-range-track"
+                  onMouseDown={handleRangeTrackClick}
+                >
+                  <div className="trim-range-track-bg" />
+                  <div
+                    className="trim-range-track-fill"
+                    style={{ left: `${startPct}%`, width: `${endPct - startPct}%` }}
+                  />
+                  <div
+                    className={`trim-range-handle ${draggingStart ? 'trim-handle-active' : ''}`}
+                    style={{ left: `${startPct}%` }}
+                    onMouseDown={handleStartMouseDown}
+                  >
+                    <span className="trim-handle-label">Start</span>
+                  </div>
+                  <div
+                    className={`trim-range-handle ${draggingEnd ? 'trim-handle-active' : ''}`}
+                    style={{ left: `${endPct}%` }}
+                    onMouseDown={handleEndMouseDown}
+                  >
+                    <span className="trim-handle-label">End</span>
+                  </div>
+                </div>
+                <div className="trim-range-values">
+                  <span>Start <strong>{fmtTime(startSecs)}</strong></span>
+                  <span>End <strong>{fmtTime(endSecs)}</strong></span>
+                  <span className="trim-range-dur">Duration <strong className="trim-duration-text">{fmtTime(endSecs - startSecs)}</strong></span>
+                </div>
               </div>
             </>
           )}
@@ -276,10 +300,10 @@ export default function Trim(): JSX.Element {
             </button>
           </div>
 
-          {!isValid && duration > 0 && (
+          {duration > 0 && !isValid && (
             <p className="trim-error">
-              {endSecs <= startSecs
-                ? 'End time must be after start time.'
+              {endSecs - startSecs < MIN_RANGE_SECS
+                ? `Range must be at least ${MIN_RANGE_SECS} second${MIN_RANGE_SECS > 1 ? 's' : ''}.`
                 : endSecs > duration
                   ? `End time cannot exceed video duration (${fmtTime(duration)}).`
                   : 'Start time cannot be negative.'}

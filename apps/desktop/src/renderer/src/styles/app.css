@@ -1365,7 +1365,7 @@ body {
 .trim-video {
   width: 100%;
   display: block;
-  max-height: 360px;
+  max-height: 340px;
   object-fit: contain;
 }
 
@@ -1403,50 +1403,67 @@ body {
   border-color: rgba(255, 255, 255, 0.12);
 }
 
-/* ── Range time display ── */
-.trim-range-times {
+/* ── Timeline sections ── */
+.trim-section {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.trim-range-time-label {
-  font-size: 11px;
-  font-weight: 600;
+.trim-section-label {
+  font-size: 10px;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.8px;
 }
 
-.trim-range-time-value {
-  font-size: 18px;
-  font-weight: 700;
-  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
-  color: var(--text-primary);
-  letter-spacing: 1px;
+/* ── Seek / Playback track ── */
+.trim-seek-track {
+  position: relative;
+  height: 24px;
+  cursor: pointer;
+  user-select: none;
 }
 
-.trim-range-time-sep {
-  font-size: 14px;
+.trim-seek-track-bg {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  background: var(--bg-tertiary);
+  border-radius: 2px;
+}
+
+.trim-seek-playhead {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #fff;
+  pointer-events: none;
+  opacity: 0.8;
+  border-radius: 1px;
+}
+
+.trim-seek-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
   color: var(--text-muted);
 }
 
-.trim-duration {
-  color: var(--accent);
-}
-
-/* ── Timeline track ── */
-.trim-track {
+/* ── Range selection track ── */
+.trim-range-track {
   position: relative;
-  height: 48px;
+  height: 56px;
   cursor: pointer;
   user-select: none;
-  margin: 0 14px;
 }
 
-.trim-track-bg {
+.trim-range-track-bg {
   position: absolute;
   left: 0;
   right: 0;
@@ -1457,22 +1474,23 @@ body {
   border-radius: 3px;
 }
 
-.trim-track-range {
+.trim-range-track-fill {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   height: 6px;
   background: var(--accent);
   border-radius: 3px;
-  opacity: 0.5;
+  opacity: 0.55;
+  pointer-events: none;
 }
 
-.trim-handle {
+.trim-range-handle {
   position: absolute;
   top: 50%;
   transform: translate(-50%, -50%);
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid var(--bg-primary);
@@ -1480,32 +1498,50 @@ body {
   cursor: grab;
   z-index: 2;
   transition: transform 0.1s ease, box-shadow 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.trim-handle:active,
+.trim-range-handle:active,
 .trim-handle-active {
   cursor: grabbing;
-  transform: translate(-50%, -50%) scale(1.25);
-  box-shadow: 0 0 0 3px var(--accent), 0 0 20px rgba(124, 58, 237, 0.6);
+  transform: translate(-50%, -50%) scale(1.3);
+  box-shadow: 0 0 0 3px var(--accent), 0 0 22px rgba(124, 58, 237, 0.6);
 }
 
-.trim-playhead {
+.trim-handle-label {
   position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: #fff;
-  z-index: 1;
+  top: -20px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
   pointer-events: none;
-  opacity: 0.7;
 }
 
-.trim-track-labels {
+.trim-range-values {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
   color: var(--text-muted);
-  margin: 0 14px;
+}
+
+.trim-range-values strong {
+  color: var(--text-primary);
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 12px;
+  margin-left: 3px;
+}
+
+.trim-range-dur strong {
+  color: var(--accent);
+}
+
+.trim-duration-text {
+  /* inline */;
 }
 
 /* ── Action buttons row ── */
