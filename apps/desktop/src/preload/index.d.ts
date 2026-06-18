@@ -12,6 +12,11 @@ export interface SummaryEntry {
   date: string
 }
 
+export interface VideoRange {
+  startSeconds: number
+  endSeconds: number
+}
+
 import type { AppSettings, AIConfig, AIModelInfo, WhisperModelInfo } from '@resumevideo/core'
 
 export interface ApiType {
@@ -19,7 +24,7 @@ export interface ApiType {
   selectOutputFolder: () => Promise<string | null>
   openFolder: (filePath: string) => Promise<void>
   openFile: (filePath: string) => Promise<void>
-  processVideo: (videoPath: string, settings: AppSettings) => Promise<string>
+  processVideo: (videoPath: string, settings: AppSettings, range?: VideoRange) => Promise<string>
   getSettings: () => Promise<AppSettings>
   saveSettings: (settings: AppSettings) => Promise<boolean>
   listAiModels: (config: AIConfig) => Promise<AIModelInfo[]>

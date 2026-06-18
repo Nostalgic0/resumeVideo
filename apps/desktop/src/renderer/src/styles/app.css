@@ -1342,6 +1342,127 @@ body {
   margin-top: 4px;
 }
 
+/* ========== Trim page ========== */
+.trim-page {
+  align-items: center;
+  justify-content: center;
+}
+
+.trim-body {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.trim-video-container {
+  width: 100%;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--border-color);
+}
+
+.trim-video {
+  width: 100%;
+  display: block;
+  max-height: 420px;
+  object-fit: contain;
+}
+
+.trim-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trim-seek {
+  width: 100%;
+  cursor: pointer;
+  accent-color: var(--accent);
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+}
+
+.trim-time-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.trim-range-controls {
+  display: flex;
+  gap: 16px;
+}
+
+.trim-range-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.trim-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trim-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.trim-time-input {
+  flex: 1;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  text-align: center;
+  letter-spacing: 2px;
+  outline: none;
+  transition: border-color var(--transition);
+}
+
+.trim-time-input:focus {
+  border-color: var(--accent);
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.trim-error {
+  font-size: 13px;
+  color: var(--error);
+  padding: 8px 12px;
+  background: var(--error-soft);
+  border-radius: var(--radius-sm);
+}
+
+.trim-preview {
+  font-size: 13px;
+  color: var(--success);
+  padding: 8px 12px;
+  background: var(--success-soft);
+  border-radius: var(--radius-sm);
+}
+
+.trim-footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
 /* ========== Scrollbar ========== */
 ::-webkit-scrollbar {
   width: 5px;

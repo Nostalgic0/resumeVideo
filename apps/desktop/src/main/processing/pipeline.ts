@@ -8,7 +8,8 @@ import { exportResult } from './exportResult'
 export async function processVideo(
   videoPath: string,
   settings: AppSettings,
-  onProgress: (step: string, progress: number, extra?: { currentTime?: number; duration?: number; etaSeconds?: number }) => void
+  onProgress: (step: string, progress: number, extra?: { currentTime?: number; duration?: number; etaSeconds?: number }) => void,
+  range?: { startSeconds: number; endSeconds: number }
 ): Promise<string> {
   let audioPath: string | null = null
 
@@ -18,7 +19,7 @@ export async function processVideo(
 
     onProgress('Extracting audio...', 5)
     console.log('[ResumeVideo] Extracting audio...')
-    audioPath = await extractAudio(videoPath)
+    audioPath = await extractAudio(videoPath, range)
     console.log('[ResumeVideo] Audio extracted:', audioPath)
     onProgress('Audio extracted', 20)
 

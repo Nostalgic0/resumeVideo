@@ -280,7 +280,7 @@ export function registerIpcHandlers(): void {
     return listWhisperModelsFromDisk()
   })
 
-  ipcMain.handle('process-video', async (event, videoPath: string, settings: AppSettings) => {
+  ipcMain.handle('process-video', async (event, videoPath: string, settings: AppSettings, range: { startSeconds: number; endSeconds: number } | null) => {
     const window = BrowserWindow.fromWebContents(event.sender)
     if (!window) {
       throw new Error('No window found')
@@ -292,7 +292,7 @@ export function registerIpcHandlers(): void {
 
     try {
       saveSettings(settings)
-      const outputPath = await processVideo(videoPath, settings, sendProgress)
+      const outputPath = await processVideo(videoPath, settings, sendProgress, range ?? undefined)
       window.webContents.send('video-complete', outputPath)
       return outputPath
     } catch (error) {

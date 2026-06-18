@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import type { AppSettings } from '@resumevideo/core'
 import { DEFAULT_DEEPSEEK_CONFIG } from '@resumevideo/core'
 
-export type Page = 'home' | 'history' | 'settings' | 'help' | 'processing' | 'result'
+export type Page = 'home' | 'history' | 'settings' | 'help' | 'trim' | 'processing' | 'result'
 
 export interface ProgressInfo {
   step: string
@@ -25,10 +25,16 @@ export interface HistoryEntry {
   date: string
 }
 
+export interface VideoRange {
+  startSeconds: number
+  endSeconds: number
+}
+
 interface AppState {
   currentPage: Page
   settings: AppSettings
   videoPath: string | null
+  videoRange: VideoRange | null
   progress: ProgressInfo
   resultPath: string | null
   error: string | null
@@ -39,6 +45,7 @@ interface AppState {
   setPage: (page: Page) => void
   setSettings: (settings: AppSettings) => void
   setVideoPath: (path: string | null) => void
+  setVideoRange: (range: VideoRange | null) => void
   setProgress: (progress: ProgressInfo) => void
   setResultPath: (path: string | null) => void
   setError: (error: string | null) => void
@@ -67,6 +74,7 @@ export const useStore = create<AppState>((set) => ({
   currentPage: 'home',
   settings: defaultSettings,
   videoPath: null,
+  videoRange: null,
   progress: { step: '', progress: 0 },
   resultPath: null,
   error: null,
@@ -77,6 +85,7 @@ export const useStore = create<AppState>((set) => ({
   setPage: (page) => set({ currentPage: page }),
   setSettings: (settings) => set({ settings }),
   setVideoPath: (path) => set({ videoPath: path }),
+  setVideoRange: (range) => set({ videoRange: range }),
   setProgress: (progress) =>
     set((state) => ({
       progress,
@@ -101,6 +110,7 @@ export const useStore = create<AppState>((set) => ({
   reset: () =>
     set({
       videoPath: null,
+      videoRange: null,
       progress: { step: '', progress: 0 },
       resultPath: null,
       error: null,

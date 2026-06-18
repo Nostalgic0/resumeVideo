@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import History from './pages/History'
 import Settings from './pages/Settings'
 import Help from './pages/Help'
+import Trim from './pages/Trim'
 import Processing from './pages/Processing'
 import Result from './pages/Result'
 import appIcon from './assets/icon.png'
@@ -58,6 +59,8 @@ function PageContent(): JSX.Element {
       return <Settings />
     case 'help':
       return <Help />
+    case 'trim':
+      return <Trim />
     case 'processing':
       return <Processing />
     case 'result':
@@ -69,7 +72,7 @@ function PageContent(): JSX.Element {
 
 export default function App(): JSX.Element {
   const currentPage = useStore((s) => s.currentPage)
-  const isFullScreen = currentPage === 'processing' || currentPage === 'result'
+  const isFullScreen = currentPage === 'trim' || currentPage === 'processing' || currentPage === 'result'
 
   return (
     <div className={`app ${isFullScreen ? 'app-focus' : ''}`}>

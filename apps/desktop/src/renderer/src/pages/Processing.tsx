@@ -4,6 +4,7 @@ import { useStore } from '../store/useStore'
 export default function Processing(): JSX.Element {
   const {
     videoPath,
+    videoRange,
     settings,
     progress,
     error,
@@ -49,7 +50,7 @@ export default function Processing(): JSX.Element {
     if (!started.current) {
       started.current = true
       addLogEntry('Starting video processing...', 0)
-      window.api.processVideo(videoPath, settings).catch((err) => {
+      window.api.processVideo(videoPath, settings, videoRange ?? undefined).catch((err) => {
         const msg = err?.message || 'An unknown error occurred'
         addLogEntry(`Error: ${msg}`, 0)
         setError(msg)

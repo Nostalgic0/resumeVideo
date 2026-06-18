@@ -5,7 +5,10 @@ import { tmpdir } from 'os'
 import { randomUUID } from 'crypto'
 import { app } from 'electron'
 
-export async function extractAudio(videoPath: string): Promise<string> {
+export async function extractAudio(
+  videoPath: string,
+  range?: { startSeconds: number; endSeconds: number }
+): Promise<string> {
   const ext = basename(videoPath).split('.').pop()?.toLowerCase()
 
   const outputDir = join(tmpdir(), 'resumevideo', randomUUID())
@@ -18,19 +21,27 @@ export async function extractAudio(videoPath: string): Promise<string> {
   const ffmpegPath = getFfmpegPath()
   console.log('[ResumeVideo] Using ffmpeg:', ffmpegPath)
 
+  const args: string[] = []
+
+  if (range) {
+    args.push('-ss', range.startSeconds.toString(), '-t', (range.endSeconds - range.startSeconds).toString())
+  }
+
+  args.push(
+    '-i', videoPath,
+    '-vn',
+    '-acodec', 'pcm_s16le',
+    '-ar', '16000',
+    '-ac', '1',
+    '-af', 'highpass=f=80,lowpass=f=8000,dynaudnorm=f=150:g=15',
+    '-y',
+    outputPath
+  )
+
   await new Promise<void>((resolve, reject) => {
     execFile(
       ffmpegPath,
-      [
-        '-i', videoPath,
-        '-vn',
-        '-acodec', 'pcm_s16le',
-        '-ar', '16000',
-        '-ac', '1',
-        '-af', 'highpass=f=80,lowpass=f=8000,dynaudnorm=f=150:g=15',
-        '-y',
-        outputPath
-      ],
+      args,
       { timeout: 300000 },
       (error, _stdout, stderr) => {
         if (error) {

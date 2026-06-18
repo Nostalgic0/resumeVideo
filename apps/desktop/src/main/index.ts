@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, protocol, net } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { existsSync } from 'fs'
@@ -50,6 +50,11 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
+  protocol.handle('local-file', (request) => {
+    const filePath = request.url.slice('local-file:///'.length)
+    return net.fetch(`file:///${filePath}`)
+  })
+
   registerIpcHandlers()
   createWindow()
 

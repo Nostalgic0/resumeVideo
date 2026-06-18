@@ -15,6 +15,11 @@ export interface SummaryEntry {
   date: string
 }
 
+export interface VideoRange {
+  startSeconds: number
+  endSeconds: number
+}
+
 const api = {
   selectVideo: (): Promise<string | null> => ipcRenderer.invoke('select-video'),
   selectOutputFolder: (): Promise<string | null> =>
@@ -23,8 +28,8 @@ const api = {
     ipcRenderer.invoke('open-folder', filePath),
   openFile: (filePath: string): Promise<void> =>
     ipcRenderer.invoke('open-file', filePath),
-  processVideo: (videoPath: string, settings: AppSettings): Promise<string> =>
-    ipcRenderer.invoke('process-video', videoPath, settings),
+  processVideo: (videoPath: string, settings: AppSettings, range?: VideoRange): Promise<string> =>
+    ipcRenderer.invoke('process-video', videoPath, settings, range ?? null),
   getSettings: (): Promise<AppSettings> => ipcRenderer.invoke('get-settings'),
   saveSettings: (settings: AppSettings): Promise<boolean> =>
     ipcRenderer.invoke('save-settings', settings),

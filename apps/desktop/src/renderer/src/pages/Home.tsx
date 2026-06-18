@@ -113,7 +113,7 @@ export default function Home(): JSX.Element {
       setSettings({ ...settings, providerConfigs: pcs })
       reset()
       setVideoPath(filePath)
-      setPage('processing')
+      setPage('trim')
     },
     [settings, setPage, setVideoPath, setError, reset, setSettings]
   )
