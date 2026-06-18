@@ -22,9 +22,7 @@ function secsToTimeString(secs: number): string {
 }
 
 function buildVideoSrc(filePath: string): string {
-  const normalized = filePath.replace(/\\/g, '/')
-  const encoded = encodeURI(normalized).replace(/#/g, '%23')
-  return `local-file:///${encoded}`
+  return `local-file://video?path=${encodeURIComponent(filePath)}`
 }
 
 export default function Trim(): JSX.Element {

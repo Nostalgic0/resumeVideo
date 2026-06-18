@@ -51,14 +51,15 @@ function createWindow(): void {
 }
 
 protocol.registerSchemesAsPrivileged([
-  { scheme: 'local-file', privileges: { bypassCSP: true, stream: true, supportFetchAPI: true } }
+  { scheme: 'local-file', privileges: { standard: true, secure: true, bypassCSP: true, stream: true, supportFetchAPI: true } }
 ])
 
 app.whenReady().then(() => {
   protocol.handle('local-file', (request) => {
     const url = new URL(request.url)
-    const decodedPath = decodeURIComponent(url.pathname)
-    return net.fetch(pathToFileURL(decodedPath).toString())
+    const rawPath = url.searchParams.get('path')
+    if (!rawPath) return new Response('Missing path', { status: 400 })
+    return net.fetch(pathToFileURL(rawPath).toString())
   })
 
   registerIpcHandlers()
