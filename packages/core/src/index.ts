@@ -1,5 +1,6 @@
 export type { AIProvider, AIConfig, AIModelInfo, WhisperModelInfo, SummaryRequest, SummarySection, SummaryResult, AppSettings, VideoLanguage, TranscriptionModel } from './ai/types'
 export { DEFAULT_DEEPSEEK_CONFIG, DEFAULT_OPENAI_CONFIG } from './ai/types'
-export { summarizeWithAI } from './ai/openaiCompatible'
+export { summarizeWithAI, askFromTranscript } from './ai/openaiCompatible'
+export type { ChatMessage } from './ai/openaiCompatible'
 export { buildSummaryPrompt } from './prompts/summaryPrompt'
 export { parseSummaryResponse, buildMarkdown, sanitizeFileName } from './export/markdown'

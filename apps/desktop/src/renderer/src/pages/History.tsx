@@ -14,6 +14,11 @@ function formatDate(iso: string): string {
   })
 }
 
+interface ChatEntry {
+  question: string
+  answer: string
+}
+
 export default function History(): JSX.Element {
   const {
     settings,
@@ -21,13 +26,17 @@ export default function History(): JSX.Element {
     setSummaries,
     selectedSummaryPath,
     setSelectedSummaryPath,
-    setPage,
-    resultPath
+    setPage
   } = useStore()
 
   const [content, setContent] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const [chatMessages, setChatMessages] = useState<ChatEntry[]>([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const [chatError, setChatError] = useState<string | null>(null)
 
   const loadSummaries = useCallback(async () => {
     try {
@@ -51,6 +60,9 @@ export default function History(): JSX.Element {
       setLoading(true)
       setError(null)
       setSelectedSummaryPath(entry.path)
+      setChatMessages([])
+      setChatInput('')
+      setChatError(null)
       const text = await window.api.readSummary(entry.path)
       setContent(text)
     } catch {
@@ -60,11 +72,45 @@ export default function History(): JSX.Element {
     }
   }, [setSelectedSummaryPath])
 
+  const handleSendChat = useCallback(async () => {
+    const question = chatInput.trim()
+    if (!question || !selectedSummaryPath || chatLoading) return
+
+    setChatInput('')
+    setChatError(null)
+    setChatMessages(prev => [...prev, { question, answer: '...' }])
+    setChatLoading(true)
+
+    try {
+      const answer = await window.api.askSummaryChat(selectedSummaryPath, question)
+      setChatMessages(prev => {
+        const updated = [...prev]
+        updated[updated.length - 1] = { question, answer }
+        return updated
+      })
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      setChatError(msg)
+      setChatMessages(prev => prev.slice(0, -1))
+    } finally {
+      setChatLoading(false)
+    }
+  }, [chatInput, selectedSummaryPath, chatLoading])
+
   const handleBack = useCallback(() => {
     setSelectedSummaryPath(null)
     setContent(null)
     setError(null)
+    setChatMessages([])
+    setChatInput('')
+    setChatError(null)
   }, [setSelectedSummaryPath])
+
+  useEffect(() => {
+    if (selectedSummaryPath && !content && !loading) {
+      handleSelect({ name: '', path: selectedSummaryPath, date: '' })
+    }
+  }, [selectedSummaryPath, content, loading, handleSelect])
 
   const handleOpenFile = useCallback((path: string) => {
     window.api.openFile(path)
@@ -126,6 +172,75 @@ export default function History(): JSX.Element {
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {content}
               </ReactMarkdown>
+            </div>
+          </div>
+
+          <div className="chat-panel">
+            <div className="chat-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+              <span>Ask about this summary</span>
+            </div>
+
+            <div className="chat-messages">
+              {chatMessages.length === 0 && !chatError && (
+                <div className="chat-empty">
+                  Ask a question about the video content. The AI will search the transcript for answers.
+                </div>
+              )}
+              {chatMessages.map((msg, i) => (
+                <div key={i} className="chat-message-group">
+                  <div className="chat-bubble chat-bubble-user">
+                    <div className="chat-bubble-label">You</div>
+                    <div className="chat-bubble-text">{msg.question}</div>
+                  </div>
+                  <div className="chat-bubble chat-bubble-ai">
+                    <div className="chat-bubble-label">AI</div>
+                    <div className="chat-bubble-text">
+                      {msg.answer === '...' ? (
+                        <span className="chat-loading-dots">
+                          <span className="chat-dot" />
+                          <span className="chat-dot" />
+                          <span className="chat-dot" />
+                        </span>
+                      ) : (
+                        msg.answer
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {chatError && (
+                <div className="chat-error">{chatError}</div>
+              )}
+            </div>
+
+            <div className="chat-input-row">
+              <input
+                className="chat-input"
+                type="text"
+                placeholder="Ask a question about this summary..."
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault()
+                    handleSendChat()
+                  }
+                }}
+                disabled={chatLoading}
+              />
+              <button
+                className="btn btn-primary chat-send-btn"
+                onClick={handleSendChat}
+                disabled={chatLoading || !chatInput.trim()}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
             </div>
           </div>
         </div>
