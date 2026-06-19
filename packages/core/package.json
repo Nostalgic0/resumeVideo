@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": false,
   "license": "MIT",
+  "description": "Shared business logic for ResumeVideo",
+  "author": "Hector",
   "type": "module",
   "main": "./src/index.ts",
   "exports": {

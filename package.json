@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": false,
   "license": "MIT",
+  "description": "Open-source desktop app for local video transcription with Whisper.cpp and AI summaries",
+  "author": "Hector",
   "workspaces": [
     "packages/*",
     "apps/*"
