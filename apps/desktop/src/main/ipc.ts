@@ -2,7 +2,7 @@ import { app, ipcMain, dialog, BrowserWindow, shell } from 'electron'
 import { readFileSync, readdirSync, statSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { join, dirname, basename } from 'path'
 import type { AppSettings, AIModelInfo, WhisperModelInfo, AIConfig } from '@resumevideo/core'
-import { DEFAULT_DEEPSEEK_CONFIG, DEFAULT_OPENAI_CONFIG } from '@resumevideo/core'
+import { DEFAULT_DEEPSEEK_CONFIG, DEFAULT_OPENAI_CONFIG, askFromTranscript } from '@resumevideo/core'
 import { processVideo } from './processing/pipeline'
 
 interface SummaryEntry {
@@ -278,6 +278,29 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('list-whisper-models', () => {
     return listWhisperModelsFromDisk()
+  })
+
+  ipcMain.handle('ask-summary-chat', async (_event, filePath: string, question: string) => {
+    if (!existsSync(filePath)) {
+      throw new Error('Summary file not found')
+    }
+
+    const settings = loadSettings()
+    if (!settings.aiConfig.apiKey || settings.aiConfig.apiKey.trim() === '') {
+      throw new Error('No API key configured. Please go to Settings and set your API key.')
+    }
+
+    const raw = readFileSync(filePath, 'utf-8')
+    const separatorIndex = raw.indexOf('\n---\n')
+    const transcript = separatorIndex !== -1
+      ? raw.slice(separatorIndex + 5).trim()
+      : raw
+
+    if (!transcript) {
+      throw new Error('No transcript found in the summary file.')
+    }
+
+    return askFromTranscript(transcript, question, settings.aiConfig)
   })
 
   ipcMain.handle('process-video', async (event, videoPath: string, settings: AppSettings, range: { startSeconds: number; endSeconds: number } | null) => {

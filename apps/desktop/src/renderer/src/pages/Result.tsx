@@ -1,7 +1,7 @@
 import { useStore } from '../store/useStore'
 
 export default function Result(): JSX.Element {
-  const { resultPath, setPage, reset } = useStore()
+  const { resultPath, setPage, reset, setSelectedSummaryPath } = useStore()
 
   const handleNewVideo = (): void => {
     reset()
@@ -11,6 +11,13 @@ export default function Result(): JSX.Element {
   const handleOpenFolder = (): void => {
     if (resultPath) {
       window.api.openFolder(resultPath)
+    }
+  }
+
+  const handleAskQuestions = (): void => {
+    if (resultPath) {
+      setSelectedSummaryPath(resultPath)
+      setPage('history')
     }
   }
 
@@ -38,7 +45,13 @@ export default function Result(): JSX.Element {
         </div>
 
         <div className="result-actions">
-          <button className="btn btn-primary btn-large" onClick={handleNewVideo}>
+          <button className="btn btn-primary btn-large" onClick={handleAskQuestions}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            Ask Questions About This Summary
+          </button>
+          <button className="btn btn-secondary btn-large" onClick={handleNewVideo}>
             Summarize Another Video
           </button>
           <button className="btn btn-secondary" onClick={handleOpenFolder}>

@@ -42,6 +42,8 @@ const api = {
     ipcRenderer.invoke('list-summaries'),
   readSummary: (filePath: string): Promise<string> =>
     ipcRenderer.invoke('read-summary', filePath),
+  askSummaryChat: (filePath: string, question: string): Promise<string> =>
+    ipcRenderer.invoke('ask-summary-chat', filePath, question),
   onProgress: (callback: (event: ProgressEvent) => void): (() => void) => {
     const handler = (_event: Electron.IpcRendererEvent, data: ProgressEvent): void =>
       callback(data)

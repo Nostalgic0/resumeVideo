@@ -32,6 +32,7 @@ export interface ApiType {
   getPathForFile: (file: File) => string
   listSummaries: () => Promise<SummaryEntry[]>
   readSummary: (filePath: string) => Promise<string>
+  askSummaryChat: (filePath: string, question: string) => Promise<string>
   onProgress: (callback: (event: ProgressEvent) => void) => () => void
   onComplete: (callback: (outputPath: string) => void) => () => void
   onError: (callback: (error: string) => void) => () => void
