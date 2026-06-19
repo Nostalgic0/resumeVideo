@@ -4,7 +4,9 @@ Desktop application that summarizes video content using local transcription and 
 
 ## Screenshots
 
-<!-- TODO: Add screenshots -->
+| Home | Settings | Help |
+|------|----------|------|
+| ![Home](docs/screenshots/home.png) | ![Settings](docs/screenshots/settings.png) | ![Help](docs/screenshots/help.png) |
 
 ## Features
 

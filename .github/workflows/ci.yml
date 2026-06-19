@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: TypeCheck core
+        run: npm run typecheck -w @resumevideo/core
+
+      - name: TypeCheck desktop
+        run: npm run typecheck -w @resumevideo/desktop
+
+      - name: Build desktop
+        run: npm run build -w @resumevideo/desktop
