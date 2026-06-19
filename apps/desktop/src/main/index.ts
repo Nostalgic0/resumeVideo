@@ -1,4 +1,4 @@
-import { app, shell, BrowserWindow, protocol } from 'electron'
+import { app, shell, BrowserWindow, protocol, Menu } from 'electron'
 import { join } from 'path'
 import { is } from '@electron-toolkit/utils'
 import { existsSync, statSync, createReadStream } from 'fs'
@@ -24,6 +24,7 @@ function createWindow(): void {
     show: false,
     title: 'ResumeVideo',
     icon: getIconPath(),
+    autoHideMenuBar: true,
     backgroundColor: '#0f0f0f',
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -123,6 +124,7 @@ app.whenReady().then(() => {
   })
 
   registerIpcHandlers()
+  Menu.setApplicationMenu(null)
   createWindow()
 
   app.on('activate', () => {
