@@ -1,7 +1,8 @@
 {
   "name": "resumevideo",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "license": "MIT",
   "workspaces": [
     "packages/*",
     "apps/*"

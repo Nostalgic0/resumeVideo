@@ -1,7 +1,8 @@
 {
   "name": "@resumevideo/desktop",
   "version": "0.1.0",
-  "private": true,
+  "private": false,
+  "license": "MIT",
   "main": "./out/main/index.js",
   "scripts": {
     "dev": "electron-vite dev",
