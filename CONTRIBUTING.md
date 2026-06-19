@@ -25,21 +25,62 @@ git push origin feature/your-feature-name
 Use conventional commits:
 
 ```
-feat:  new feature
-fix:   bug fix
-docs:  documentation
-ui:    visual/style changes
+feat:    new feature
+fix:     bug fix
+docs:    documentation
+ui:      visual/style changes
 refactor: code restructuring without behavior change
-chore: dependencies, build config
+chore:   dependencies, build config
+i18n:    translation changes
 ```
 
 ## Before Submitting
 
 - Run `npm run build -w @resumevideo/desktop` — must succeed.
 - Run `npm run typecheck -w @resumevideo/desktop` — must have 0 errors.
-- Keep UI text in English.
-- Add console.log statements with `[ResumeVideo]` prefix for important pipeline events.
 - Test with real video files if your change affects the processing pipeline.
+- If you add new UI text, use the `t()` function (see i18n section below).
+- Add `console.log` statements with `[ResumeVideo]` prefix for important pipeline events.
+
+## Internationalization (i18n)
+
+All user-facing strings must use the translation system.
+
+### Adding a new UI string
+
+1. Add the key to all four dictionaries in `apps/desktop/src/renderer/src/i18n/translations.ts`:
+   ```ts
+   en: { 'myPage.save': 'Save' },
+   es: { 'myPage.save': 'Guardar' },
+   pt: { 'myPage.save': 'Salvar' },
+   fr: { 'myPage.save': 'Enregistrer' },
+   ```
+
+2. Use it in your component:
+   ```tsx
+   import { useTranslation } from '../i18n/useTranslation'
+
+   function MyComponent() {
+     const { t } = useTranslation()
+     return <button>{t('myPage.save')}</button>
+   }
+   ```
+
+### Key naming convention
+
+```
+<page>.<descriptive-name>
+```
+
+Examples: `home.chooseVideo`, `settings.save`, `help.privacy`, `result.summaryComplete`.
+
+### Adding a new language
+
+1. Add the language code to the `AppLanguage` type in `packages/core/src/ai/types.ts`.
+2. Create a new dictionary in `apps/desktop/src/renderer/src/i18n/translations.ts`.
+3. Add the language option to `appLanguageOptions`.
+4. Add the language option to the `App Language` selector in `Settings.tsx`.
+5. Update the `useTranslation` fallback chain if needed.
 
 ## What NOT to Commit
 
@@ -70,10 +111,10 @@ apps/desktop/          Electron app
     processing/        Audio extraction, transcription, summarization, export
   src/preload/         Bridge between Node and browser
   src/renderer/        React UI
-    pages/             Home, Settings, Processing, Result
-    components/        Dropzone and reusable parts
+    pages/             Home, Settings, Processing, Result, History, Help, Trim
+    components/        Dropzone, Select
     store/             Zustand state
-    styles/            Global CSS
+    i18n/              Translations and useTranslation hook
 packages/core/         Shared logic
   src/ai/              AI provider adapter (OpenAI-compatible)
   src/prompts/         Summary prompt (adaptive)
@@ -83,7 +124,7 @@ resources/             Binaries and models (not in git)
 
 ## Key Decisions
 
-- **UI is in English** — the app interface stays English; only summaries use the video's original language.
+- **UI is in English by default**, but supports Español, Português, and Français via App Language setting.
 - **AI provider** — uses OpenAI-compatible API format, supporting DeepSeek, OpenAI, Ollama, LM Studio, and more.
 - **Transcription is local** — Whisper.cpp runs on the user's machine, no cloud dependency.
 - **Language handling** — user selects video language in Settings; Whisper transcribes in that language; AI summarizes in that language.
