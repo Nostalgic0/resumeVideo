@@ -2,13 +2,15 @@ import { useCallback, useState, type DragEvent } from 'react'
 
 interface DropzoneProps {
   onFileDrop: (filePath: string) => void
+  text: string
+  hint: string
 }
 
 const VIDEO_EXTENSIONS = new Set([
   '.mp4', '.mkv', '.avi', '.mov', '.webm', '.m4v', '.wmv', '.flv'
 ])
 
-export default function Dropzone({ onFileDrop }: DropzoneProps): JSX.Element {
+export default function Dropzone({ onFileDrop, text, hint }: DropzoneProps): JSX.Element {
   const [isDragOver, setIsDragOver] = useState(false)
 
   const handleDragOver = useCallback((e: DragEvent) => {
@@ -59,8 +61,8 @@ export default function Dropzone({ onFileDrop }: DropzoneProps): JSX.Element {
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
       </div>
-      <p className="dropzone-text">Drag &amp; drop your video here</p>
-      <p className="dropzone-hint">or click the button below to browse</p>
+      <p className="dropzone-text">{text}</p>
+      <p className="dropzone-hint">{hint}</p>
     </div>
   )
 }

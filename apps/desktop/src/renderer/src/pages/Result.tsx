@@ -1,6 +1,8 @@
 import { useStore } from '../store/useStore'
+import { useTranslation } from '../i18n/useTranslation'
 
 export default function Result(): JSX.Element {
+  const { t } = useTranslation()
   const { resultPath, setPage, reset, setSelectedSummaryPath } = useStore()
 
   const handleNewVideo = (): void => {
@@ -31,8 +33,8 @@ export default function Result(): JSX.Element {
           </svg>
         </div>
 
-        <h2 className="result-title">Summary Complete</h2>
-        <p className="result-subtitle">Your video has been transcribed and summarized successfully.</p>
+        <h2 className="result-title">{t('result.summaryComplete')}</h2>
+        <p className="result-subtitle">{t('result.summaryCompleteSub')}</p>
 
         <div className="result-file-card">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -49,23 +51,23 @@ export default function Result(): JSX.Element {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
-            Ask Questions About This Summary
+            {t('result.askQuestions')}
           </button>
           <button className="btn btn-secondary btn-large" onClick={handleNewVideo}>
-            Summarize Another Video
+            {t('result.summarizeAnother')}
           </button>
           <button className="btn btn-secondary" onClick={handleOpenFolder}>
-            Open Output Folder
+            {t('result.openOutputFolder')}
           </button>
           <div className="result-secondary-actions">
             <button className="btn btn-ghost" onClick={() => setPage('history')}>
-              View Summaries
+              {t('result.viewSummaries')}
             </button>
             <button className="btn btn-ghost" onClick={() => setPage('settings')}>
-              Settings
+              {t('result.settings')}
             </button>
             <button className="btn btn-ghost" onClick={() => setPage('home')}>
-              Home
+              {t('result.home')}
             </button>
           </div>
         </div>

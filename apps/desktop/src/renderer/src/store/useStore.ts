@@ -60,6 +60,7 @@ const defaultSettings: AppSettings = {
   aiConfig: DEFAULT_DEEPSEEK_CONFIG,
   outputFolder: '',
   videoLanguage: 'es',
+  appLanguage: 'en',
   transcriptionModel: 'ggml-base.bin',
   lastProvider: 'deepseek'
 }

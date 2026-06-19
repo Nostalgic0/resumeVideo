@@ -1,9 +1,12 @@
+import { useTranslation } from '../i18n/useTranslation'
+
 export default function Help(): JSX.Element {
+  const { t } = useTranslation()
   return (
     <div className="page help-page">
       <div className="panel">
         <div className="panel-header">
-          <h2 className="panel-title">Help &amp; Info</h2>
+          <h2 className="panel-title">{t('help.title')}</h2>
         </div>
         <div className="panel-body">
           <div className="help-section">

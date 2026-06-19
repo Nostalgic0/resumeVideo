@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { useStore, type HistoryEntry } from '../store/useStore'
+import { useTranslation } from '../i18n/useTranslation'
 
 function formatDate(iso: string): string {
   const d = new Date(iso)
@@ -20,6 +21,7 @@ interface ChatEntry {
 }
 
 export default function History(): JSX.Element {
+  const { t } = useTranslation()
   const {
     settings,
     summaries,
@@ -45,7 +47,7 @@ export default function History(): JSX.Element {
       const list = await window.api.listSummaries()
       setSummaries(list)
     } catch (err) {
-      setError('Failed to load summaries')
+      setError(t('history.failedLoad'))
     } finally {
       setLoading(false)
     }
@@ -66,7 +68,7 @@ export default function History(): JSX.Element {
       const text = await window.api.readSummary(entry.path)
       setContent(text)
     } catch {
-      setError('Failed to read summary')
+      setError(t('history.failedRead'))
     } finally {
       setLoading(false)
     }
@@ -127,7 +129,7 @@ export default function History(): JSX.Element {
       <div className="page history-page">
         <div className="panel">
           <div className="panel-header">
-            <h2 className="panel-title">History</h2>
+            <h2 className="panel-title">{t('history.title')}</h2>
           </div>
           <div className="panel-body empty-state">
             <div className="empty-icon">
@@ -136,10 +138,10 @@ export default function History(): JSX.Element {
                 <path d="M12 6v6l4 2" />
               </svg>
             </div>
-            <h3>No output folder set</h3>
-            <p>Configure an output folder in Settings to enable history.</p>
+            <h3>{t('history.noOutputFolder')}</h3>
+            <p>{t('history.noOutputFolderDesc')}</p>
             <button className="btn btn-primary btn-large" onClick={() => setPage('settings')}>
-              Go to Settings
+              {t('history.goToSettings')}
             </button>
           </div>
         </div>
@@ -156,7 +158,7 @@ export default function History(): JSX.Element {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6" />
               </svg>
-              Back to list
+              {t('history.backToList')}
             </button>
             <button className="btn btn-secondary" onClick={() => handleOpenFile(selectedSummaryPath)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -164,7 +166,7 @@ export default function History(): JSX.Element {
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
               </svg>
-              Open File
+              {t('history.openFile')}
             </button>
           </div>
           <div className="history-reader-content">
@@ -180,23 +182,23 @@ export default function History(): JSX.Element {
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
               </svg>
-              <span>Ask about this summary</span>
+              <span>{t('history.askAbout')}</span>
             </div>
 
             <div className="chat-messages">
               {chatMessages.length === 0 && !chatError && (
                 <div className="chat-empty">
-                  Ask a question about the video content. The AI will search the transcript for answers.
+                  {t('history.askHint')}
                 </div>
               )}
               {chatMessages.map((msg, i) => (
                 <div key={i} className="chat-message-group">
                   <div className="chat-bubble chat-bubble-user">
-                    <div className="chat-bubble-label">You</div>
+                    <div className="chat-bubble-label">{t('history.you')}</div>
                     <div className="chat-bubble-text">{msg.question}</div>
                   </div>
                   <div className="chat-bubble chat-bubble-ai">
-                    <div className="chat-bubble-label">AI</div>
+                    <div className="chat-bubble-label">{t('history.ai')}</div>
                     <div className="chat-bubble-text">
                       {msg.answer === '...' ? (
                         <span className="chat-loading-dots">
@@ -220,7 +222,7 @@ export default function History(): JSX.Element {
               <input
                 className="chat-input"
                 type="text"
-                placeholder="Ask a question about this summary..."
+                placeholder={t('history.askPlaceholder')}
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -254,9 +256,9 @@ export default function History(): JSX.Element {
         <div className="history-list-panel">
           <div className="history-list-header">
             <div>
-              <h2 className="panel-title">History</h2>
+              <h2 className="panel-title">{t('history.title')}</h2>
               <p className="panel-subtitle">
-                {summaries.length} summary file{summaries.length !== 1 ? 's' : ''} found
+                {t('history.summariesFound', { n: summaries.length, plural: summaries.length !== 1 ? 's' : '' })}
               </p>
             </div>
             <button className="btn btn-secondary" onClick={loadSummaries} disabled={loading}>
@@ -264,7 +266,7 @@ export default function History(): JSX.Element {
                 <polyline points="23 4 23 10 17 10" />
                 <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
               </svg>
-              Refresh
+              {t('history.refresh')}
             </button>
           </div>
 
@@ -282,10 +284,10 @@ export default function History(): JSX.Element {
                   <line x1="16" y1="17" x2="8" y2="17" />
                 </svg>
               </div>
-              <h3>No summaries yet</h3>
-              <p>Your completed summaries will appear here.</p>
+              <h3>{t('history.noSummaries')}</h3>
+              <p>{t('history.noSummariesDesc')}</p>
               <button className="btn btn-primary btn-large" onClick={() => setPage('home')}>
-                Summarize a Video
+                {t('history.summarizeVideo')}
               </button>
             </div>
           )}
@@ -313,7 +315,7 @@ export default function History(): JSX.Element {
 
           <div className="history-list-footer">
             <button className="btn btn-ghost" onClick={handleOpenFolder}>
-              Open Output Folder
+              {t('result.openOutputFolder')}
             </button>
           </div>
         </div>
@@ -326,8 +328,8 @@ export default function History(): JSX.Element {
                   <path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" />
                 </svg>
               </div>
-              <h3>Select a summary</h3>
-              <p>Choose a file from the list to read it here.</p>
+              <h3>{t('history.selectSummary')}</h3>
+              <p>{t('history.selectSummaryDesc')}</p>
             </div>
           </div>
         )}

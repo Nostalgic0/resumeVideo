@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { useStore } from '../store/useStore'
+import { useTranslation } from '../i18n/useTranslation'
 
 export default function Processing(): JSX.Element {
+  const { t } = useTranslation()
   const {
     videoPath,
     videoRange,
@@ -20,7 +22,7 @@ export default function Processing(): JSX.Element {
 
   useEffect(() => {
     if (!videoPath) {
-      setError('No video file was selected. Please go back and try again.')
+      setError(t('misc.noVideoSelected'))
       return
     }
 
@@ -34,7 +36,7 @@ export default function Processing(): JSX.Element {
 
     cleanupFns.push(
       window.api.onComplete((outputPath) => {
-        addLogEntry('Summary saved successfully', 100)
+        addLogEntry(t('misc.summarySaved'), 100)
         setResultPath(outputPath)
         setPage('result')
       })
@@ -49,10 +51,10 @@ export default function Processing(): JSX.Element {
 
     if (!started.current) {
       started.current = true
-      addLogEntry('Starting video processing...', 0)
+      addLogEntry(t('misc.startingProcessing'), 0)
       window.api.processVideo(videoPath, settings, videoRange ?? undefined).catch((err) => {
-        const msg = err?.message || 'An unknown error occurred'
-        addLogEntry(`Error: ${msg}`, 0)
+        const msg = err?.message || t('misc.unknownError')
+        addLogEntry(`${t('misc.error')}: ${msg}`, 0)
         setError(msg)
       })
     }
@@ -82,21 +84,21 @@ export default function Processing(): JSX.Element {
                 <line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
             </div>
-            <h2>Something went wrong</h2>
+            <h2>{t('processing.somethingWrong')}</h2>
             <p>{error}</p>
             <div className="processing-error-actions">
               <button className="btn btn-primary" onClick={() => { setPage('home') }}>
-                Go Home
+                {t('processing.goHome')}
               </button>
               <button className="btn btn-secondary" onClick={() => setPage('settings')}>
-                Check Settings
+                {t('processing.checkSettings')}
               </button>
             </div>
           </div>
 
           {activityLog.length > 0 && (
             <div className="activity-log">
-              <h4 className="activity-log-title">Activity Log</h4>
+              <h4 className="activity-log-title">{t('processing.activityLog')}</h4>
               <div className="activity-log-scroll">
                 {activityLog.map((entry) => (
                   <div key={entry.id} className="activity-log-entry">
@@ -135,18 +137,26 @@ export default function Processing(): JSX.Element {
               <span className="progress-time-label">
                 {formatTime(progress.currentTime)} / {formatTime(progress.duration)}
               </span>
-              {progress.etaSeconds !== undefined && progress.etaSeconds > 0 && (
-                <span className="progress-eta">
-                  About {formatEta(progress.etaSeconds)} remaining
-                </span>
-              )}
+              {progress.etaSeconds !== undefined && progress.etaSeconds > 0 && (() => {
+                const eta = progress.etaSeconds
+                const etaText = eta < 60
+                  ? t('processing.lessThanMinute')
+                  : Math.round(eta / 60) === 1
+                    ? t('processing.oneMinute')
+                    : t('processing.minutes', { n: Math.round(eta / 60) })
+                return (
+                  <span className="progress-eta">
+                    {t('processing.aboutRemaining', { eta: etaText })}
+                  </span>
+                )
+              })()}
             </div>
           )}
         </div>
 
         {activityLog.length > 1 && (
           <div className="activity-log">
-            <h4 className="activity-log-title">Activity Log</h4>
+            <h4 className="activity-log-title">{t('processing.activityLog')}</h4>
             <div className="activity-log-scroll">
               {activityLog.map((entry) => (
                 <div key={entry.id} className="activity-log-entry">
@@ -162,7 +172,7 @@ export default function Processing(): JSX.Element {
 
       <div className="processing-back">
         <button className="btn btn-ghost" onClick={() => setPage('home')}>
-          Cancel &amp; Go Back
+          {t('processing.cancelGoBack')}
         </button>
       </div>
     </div>
@@ -174,11 +184,4 @@ function formatTime(totalSeconds: number): string {
   const m = Math.floor(totalSeconds / 60)
   const s = Math.floor(totalSeconds % 60)
   return `${m}:${s.toString().padStart(2, '0')}`
-}
-
-function formatEta(seconds: number): string {
-  if (seconds < 60) return 'less than a minute'
-  const m = Math.round(seconds / 60)
-  if (m === 1) return '1 minute'
-  return `${m} minutes`
 }

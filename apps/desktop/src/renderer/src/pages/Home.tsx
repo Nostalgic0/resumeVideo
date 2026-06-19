@@ -3,6 +3,7 @@ import { useStore } from '../store/useStore'
 import Dropzone from '../components/Dropzone'
 import RvSelect from '../components/Select'
 import type { AIProvider, AIModelInfo, WhisperModelInfo } from '@resumevideo/core'
+import { useTranslation } from '../i18n/useTranslation'
 import appIcon from '../assets/icon.png'
 
 function getTranscriptionLabel(model: string): string {
@@ -21,6 +22,7 @@ function providerLabel(p: AIProvider): string {
 }
 
 export default function Home(): JSX.Element {
+  const { t } = useTranslation()
   const { setPage, setVideoPath, setError, settings, setSettings, videoPath, reset, resultPath } = useStore()
   const settingsLoaded = useRef(false)
   const [aiModels, setAiModels] = useState<AIModelInfo[]>([])
@@ -95,16 +97,16 @@ export default function Home(): JSX.Element {
   const handleFileDrop = useCallback(
     (filePath: string) => {
       if (!filePath) {
-        setError('Could not read the file path. Please use Browse Files instead.')
+        setError(t('home.couldNotRead'))
         return
       }
       if (!settings.outputFolder) {
-        setError('Please configure an output folder in Settings first.')
+        setError(t('home.configureOutputFirst'))
         setPage('settings')
         return
       }
       if (!settings.aiConfig.apiKey) {
-        setError('Please paste your API key in Settings first.')
+        setError(t('home.configureApiKeyFirst'))
         setPage('settings')
         return
       }
@@ -152,16 +154,16 @@ export default function Home(): JSX.Element {
               <img src={appIcon} alt="ResumeVideo" className="home-hero-img" />
             </div>
             <div>
-              <h1 className="home-hero-title">Summarize your videos with AI</h1>
-              <p className="home-hero-sub">Transcribe locally, summarize intelligently.</p>
+              <h1 className="home-hero-title">{t('home.title')}</h1>
+              <p className="home-hero-sub">{t('home.subtitle')}</p>
             </div>
           </div>
 
-          <Dropzone onFileDrop={handleFileDrop} />
+          <Dropzone onFileDrop={handleFileDrop} text={t('home.dropzone')} hint={t('home.dropzoneHint')} />
 
           <div className="home-actions">
             <button className="btn btn-primary btn-large" onClick={handleSelectClick}>
-              Choose a Video
+              {t('home.chooseVideo')}
             </button>
             {videoPath && (
               <p className="home-path">{videoPath}</p>
@@ -182,20 +184,20 @@ export default function Home(): JSX.Element {
 
         <div className="home-sidebar">
           <div className="home-status-card">
-            <h3 className="home-status-title">Summary Setup</h3>
+            <h3 className="home-status-title">{t('home.summarySetup')}</h3>
 
             <div className="settings-card">
-              <h3 className="settings-card-title">AI Provider</h3>
+              <h3 className="settings-card-title">{t('home.aiProvider')}</h3>
               {configuredProviders.length === 0 ? (
                 <>
                   <RvSelect
                     options={[]}
                     value=""
                     onChange={() => {}}
-                    placeholder="No API keys configured"
+                    placeholder={t('home.noApiKeys')}
                     disabled
                   />
-                  <p className="settings-hint">Go to Settings to add an API key.</p>
+                  <p className="settings-hint">{t('home.goToSettingsApiKey')}</p>
                 </>
               ) : (
                 <>
@@ -206,57 +208,57 @@ export default function Home(): JSX.Element {
                   />
                   <p className="settings-hint">
                     {settings.aiConfig.provider === 'deepseek' ? 'DeepSeek' : 'OpenAI'}
-                    {hasApiKey ? ' — API key configured' : ''}
+                    {hasApiKey ? ` — ${t('home.apiKeyConfigured')}` : ''}
                   </p>
                 </>
               )}
             </div>
 
             <div className="settings-card">
-              <h3 className="settings-card-title">Summary Model</h3>
+              <h3 className="settings-card-title">{t('home.summaryModel')}</h3>
               <RvSelect
                 options={aiModelOptions}
                 value={settings.aiConfig.model}
                 onChange={handleModelChange}
-                placeholder={!hasApiKey ? 'Set API key first' : aiModels.length === 0 ? 'Loading...' : 'Select model'}
+                placeholder={!hasApiKey ? t('home.setApiKeyFirst') : aiModels.length === 0 ? t('home.loading') : t('home.selectModel')}
                 disabled={!hasApiKey || aiModels.length === 0}
               />
             </div>
 
             <div className="settings-card">
-              <h3 className="settings-card-title">Transcription Model</h3>
+              <h3 className="settings-card-title">{t('home.transcriptionModel')}</h3>
               <RvSelect
                 options={whisperModelOptions}
                 value={settings.transcriptionModel}
                 onChange={handleTranscriptionModelChange}
-                placeholder={whisperModels.length === 0 ? 'No models found' : 'Select model'}
+                placeholder={whisperModels.length === 0 ? t('home.noModelsFound') : t('home.selectModel')}
                 disabled={whisperModels.length === 0}
               />
             </div>
           </div>
 
           <div className="home-status-card">
-            <h3 className="home-status-title">Quick Status</h3>
+            <h3 className="home-status-title">{t('home.quickStatus')}</h3>
             <div className="home-status-list">
               <div className={`home-status-item ${hasApiKey ? 'home-status-ok' : 'home-status-warn'}`}>
                 <span className="home-status-dot" />
                 <div>
-                  <span className="home-status-label">API Key</span>
-                  <span className="home-status-value">{hasApiKey ? 'Configured' : 'Not set'}</span>
+                  <span className="home-status-label">{t('home.apiKey')}</span>
+                  <span className="home-status-value">{hasApiKey ? t('home.configured') : t('home.notSet')}</span>
                 </div>
               </div>
               <div className={`home-status-item ${hasOutputFolder ? 'home-status-ok' : 'home-status-warn'}`}>
                 <span className="home-status-dot" />
                 <div>
-                  <span className="home-status-label">Output Folder</span>
-                  <span className="home-status-value">{hasOutputFolder ? 'Set' : 'Not set'}</span>
+                  <span className="home-status-label">{t('home.outputFolder')}</span>
+                  <span className="home-status-value">{hasOutputFolder ? t('home.set') : t('home.notSet')}</span>
                 </div>
               </div>
               <div className="home-status-item home-status-ok">
                 <span className="home-status-dot" />
                 <div>
-                  <span className="home-status-label">Language</span>
-                  <span className="home-status-value">{settings.videoLanguage === 'auto' ? 'Auto-detect' : settings.videoLanguage.toUpperCase()}</span>
+                  <span className="home-status-label">{t('home.language')}</span>
+                  <span className="home-status-value">{settings.videoLanguage === 'auto' ? t('home.autoDetect') : settings.videoLanguage.toUpperCase()}</span>
                 </div>
               </div>
             </div>
@@ -264,15 +266,15 @@ export default function Home(): JSX.Element {
 
           <div className="home-quick-actions">
             <button className="btn btn-secondary" onClick={() => setPage('settings')}>
-              Configure Settings
+              {t('home.configureSettings')}
             </button>
             {resultPath && (
               <button className="btn btn-ghost" onClick={() => setPage('result')}>
-                View Last Summary
+                {t('home.viewLastSummary')}
               </button>
             )}
             <button className="btn btn-ghost" onClick={() => setPage('history')}>
-              Browse History
+              {t('home.browseHistory')}
             </button>
           </div>
         </div>

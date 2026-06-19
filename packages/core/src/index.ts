@@ -1,4 +1,4 @@
-export type { AIProvider, AIConfig, AIModelInfo, WhisperModelInfo, SummaryRequest, SummarySection, SummaryResult, AppSettings, VideoLanguage, TranscriptionModel } from './ai/types'
+export type { AIProvider, AIConfig, AIModelInfo, WhisperModelInfo, SummaryRequest, SummarySection, SummaryResult, AppSettings, VideoLanguage, AppLanguage, TranscriptionModel } from './ai/types'
 export { DEFAULT_DEEPSEEK_CONFIG, DEFAULT_OPENAI_CONFIG } from './ai/types'
 export { summarizeWithAI, askFromTranscript } from './ai/openaiCompatible'
 export type { ChatMessage } from './ai/openaiCompatible'

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useStore } from '../store/useStore'
+import { useTranslation } from '../i18n/useTranslation'
 
 const MIN_RANGE_SECS = 1
 
@@ -15,6 +16,7 @@ function buildVideoSrc(filePath: string): string {
 }
 
 export default function Trim(): JSX.Element {
+  const { t } = useTranslation()
   const { videoPath, videoRange, setVideoRange, setPage, setError } = useStore()
   const videoRef = useRef<HTMLVideoElement>(null)
   const seekTrackRef = useRef<HTMLDivElement>(null)
@@ -33,7 +35,7 @@ export default function Trim(): JSX.Element {
 
   useEffect(() => {
     if (!videoPath) {
-      setError('No video was selected. Please go back and try again.')
+      setError(t('trim.noVideo'))
       return
     }
     const video = videoRef.current
@@ -208,7 +210,7 @@ export default function Trim(): JSX.Element {
       <div className="page trim-page">
         <div className="panel">
           <div className="panel-body">
-            <p style={{ color: 'var(--text-muted)' }}>No video selected. Go back and choose a video.</p>
+            <p style={{ color: 'var(--text-muted)' }}>{t('trim.noVideo')}</p>
           </div>
         </div>
       </div>
@@ -223,19 +225,17 @@ export default function Trim(): JSX.Element {
     <div className="page trim-page">
       <div className="panel">
         <div className="panel-header">
-          <h2 className="panel-title">Select Range to Summarize</h2>
-          <p className="panel-subtitle">
-            Use the top bar to preview. Drag the handles below to choose start and end.
-          </p>
+          <h2 className="panel-title">{t('trim.title')}</h2>
+          <p className="panel-subtitle">{t('trim.subtitle')}</p>
         </div>
 
         <div className="panel-body trim-body">
           <div className="trim-video-container">
             {videoError ? (
               <div className="trim-video-error">
-                <p>Could not load video preview.</p>
+                <p>{t('trim.couldNotLoad')}</p>
                 <p className="trim-video-error-sub">
-                  You can still use the buttons below to summarize the full video.
+                  {t('trim.couldNotLoadSub')}
                 </p>
               </div>
             ) : (
@@ -249,7 +249,7 @@ export default function Trim(): JSX.Element {
           </div>
 
           {!videoError && (
-            <button className="trim-play-btn" onClick={togglePlay} title={playing ? 'Pause' : 'Play'}>
+            <button className="trim-play-btn" onClick={togglePlay} title={playing ? t('trim.pause') : t('trim.play')}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 {playing ? (
                   <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
@@ -263,7 +263,7 @@ export default function Trim(): JSX.Element {
           {duration > 0 && (
             <>
               <div className="trim-section">
-                <div className="trim-section-label">Preview</div>
+                <div className="trim-section-label">{t('trim.preview')}</div>
                 <div
                   ref={seekTrackRef}
                   className="trim-seek-track"
@@ -282,7 +282,7 @@ export default function Trim(): JSX.Element {
               </div>
 
               <div className="trim-section">
-                <div className="trim-section-label">Range</div>
+                <div className="trim-section-label">{t('trim.range')}</div>
                 <div
                   ref={rangeTrackRef}
                   className="trim-range-track"
@@ -298,20 +298,20 @@ export default function Trim(): JSX.Element {
                     style={{ left: `${startPct}%` }}
                     onMouseDown={handleStartMouseDown}
                   >
-                    <span className="trim-handle-label">Start</span>
+                    <span className="trim-handle-label">{t('trim.start')}</span>
                   </div>
                   <div
                     className={`trim-range-handle ${draggingEnd ? 'trim-handle-active' : ''}`}
                     style={{ left: `${endPct}%` }}
                     onMouseDown={handleEndMouseDown}
                   >
-                    <span className="trim-handle-label">End</span>
+                    <span className="trim-handle-label">{t('trim.end')}</span>
                   </div>
                 </div>
                 <div className="trim-range-values">
-                  <span>Start <strong>{fmtTime(startSecs)}</strong></span>
-                  <span>End <strong>{fmtTime(endSecs)}</strong></span>
-                  <span className="trim-range-dur">Duration <strong className="trim-duration-text">{fmtTime(endSecs - startSecs)}</strong></span>
+                  <span>{t('trim.start')} <strong>{fmtTime(startSecs)}</strong></span>
+                  <span>{t('trim.end')} <strong>{fmtTime(endSecs)}</strong></span>
+                  <span className="trim-range-dur">{t('trim.duration')} <strong className="trim-duration-text">{fmtTime(endSecs - startSecs)}</strong></span>
                 </div>
               </div>
             </>
@@ -319,41 +319,40 @@ export default function Trim(): JSX.Element {
 
           <div className="trim-actions-row">
             <button className="btn btn-secondary btn-sm" onClick={handleSetStart}>
-              Set Start Here
+              {t('trim.setStartHere')}
             </button>
             <button className="btn btn-secondary btn-sm" onClick={handleSetEnd}>
-              Set End Here
+              {t('trim.setEndHere')}
             </button>
           </div>
 
           {duration > 0 && !isValid && (
             <p className="trim-error">
               {endSecs - startSecs < MIN_RANGE_SECS
-                ? `Range must be at least ${MIN_RANGE_SECS} second${MIN_RANGE_SECS > 1 ? 's' : ''}.`
+                ? t('trim.rangeMin', { n: MIN_RANGE_SECS, plural: MIN_RANGE_SECS > 1 ? 's' : '' })
                 : endSecs > duration
-                  ? `End time cannot exceed video duration (${fmtTime(duration)}).`
-                  : 'Start time cannot be negative.'}
+                  ? t('trim.endExceeds', { duration: fmtTime(duration) })
+                  : t('trim.startNegative')}
             </p>
           )}
 
           {isValid && (
             <p className="trim-preview">
-              Summarize from <strong>{fmtTime(startSecs)}</strong> to{' '}
-              <strong>{fmtTime(endSecs)}</strong> ({fmtTime(endSecs - startSecs)} total)
+              {t('trim.summarizeFrom', { start: fmtTime(startSecs), end: fmtTime(endSecs), duration: fmtTime(endSecs - startSecs) })}
             </p>
           )}
         </div>
 
         <div className="panel-footer">
           <button className="btn btn-ghost" onClick={() => setPage('home')}>
-            Cancel
+            {t('trim.cancel')}
           </button>
           <div className="trim-footer-actions">
             <button className="btn btn-secondary" onClick={handleFullVideo}>
-              Use Full Video
+              {t('trim.useFullVideo')}
             </button>
             <button className="btn btn-primary" disabled={!isValid} onClick={handleSummarize}>
-              Summarize Selection
+              {t('trim.summarizeSelection')}
             </button>
           </div>
         </div>

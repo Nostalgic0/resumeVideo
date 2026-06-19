@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useStore } from '../store/useStore'
-import type { AppSettings, AIProvider, VideoLanguage, AIConfig, AIModelInfo, WhisperModelInfo } from '@resumevideo/core'
+import type { AppSettings, AIProvider, VideoLanguage, AppLanguage, AIConfig, AIModelInfo, WhisperModelInfo } from '@resumevideo/core'
 import { DEFAULT_DEEPSEEK_CONFIG, DEFAULT_OPENAI_CONFIG } from '@resumevideo/core'
+import { useTranslation } from '../i18n/useTranslation'
+import { appLanguageOptions } from '../i18n/translations'
 import RvSelect from '../components/Select'
 
 function getTranscriptionLabel(model: string): string {
@@ -38,6 +40,7 @@ const VIDEO_LANGUAGE_OPTIONS = [
 ]
 
 export default function Settings(): JSX.Element {
+  const { t } = useTranslation()
   const { settings, setSettings, setPage } = useStore()
   const [localSettings, setLocalSettings] = useState<AppSettings>({ ...settings })
   const [saved, setSaved] = useState(false)
@@ -167,26 +170,26 @@ export default function Settings(): JSX.Element {
   }))
 
   const summaryModelPlaceholder = !hasApiKey
-    ? 'Enter an API key to load models'
+    ? t('settings.enterApiKey')
     : modelsLoading
-      ? 'Loading models...'
+      ? t('settings.loadingModels')
       : modelsError && aiModels.length === 0
         ? modelsError
         : aiModels.length === 0
-          ? 'No models available'
-          : 'Select a model'
+          ? t('settings.noModelsAvailable')
+          : t('settings.selectModel')
 
   return (
     <div className="page settings-page">
       <div className="panel">
         <div className="panel-header">
-          <h2 className="panel-title">Settings</h2>
-          <p className="panel-subtitle">Configure your AI provider, model, and output preferences.</p>
+          <h2 className="panel-title">{t('settings.title')}</h2>
+          <p className="panel-subtitle">{t('settings.subtitle')}</p>
         </div>
         <div className="panel-body">
 
           <div className="settings-card">
-            <h3 className="settings-card-title">AI Provider</h3>
+            <h3 className="settings-card-title">{t('settings.aiProvider')}</h3>
             <div className="settings-radio-group">
               {(['deepseek', 'openai'] as AIProvider[]).map((p) => (
                 <label
@@ -207,19 +210,19 @@ export default function Settings(): JSX.Element {
           </div>
 
           <div className="settings-card">
-            <h3 className="settings-card-title">API Key</h3>
+            <h3 className="settings-card-title">{t('settings.apiKey')}</h3>
             <input
               type="password"
               className="settings-input"
-              placeholder={`Paste your ${aiConfig.provider === 'deepseek' ? 'DeepSeek' : 'OpenAI'} API key`}
+              placeholder={t('settings.apiKeyPlaceholder', { provider: aiConfig.provider === 'deepseek' ? 'DeepSeek' : 'OpenAI' })}
               value={aiConfig.apiKey}
               onChange={(e) => handleApiKeyChange(e.target.value)}
             />
-            <p className="settings-hint">Stored locally. Only sent to your AI provider when summarizing.</p>
+            <p className="settings-hint">{t('settings.apiKeyHint')}</p>
           </div>
 
           <div className="settings-card">
-            <h3 className="settings-card-title">Summary Model</h3>
+            <h3 className="settings-card-title">{t('settings.summaryModel')}</h3>
             <RvSelect
               options={aiModelOptions}
               value={aiConfig.model}
@@ -233,21 +236,19 @@ export default function Settings(): JSX.Element {
           </div>
 
           <div className="settings-card">
-            <h3 className="settings-card-title">Transcription Model</h3>
+            <h3 className="settings-card-title">{t('settings.transcriptionModel')}</h3>
             <RvSelect
               options={whisperModelOptions}
               value={localSettings.transcriptionModel}
               onChange={handleTranscriptionModelChange}
-              placeholder={whisperModels.length === 0 ? 'No Whisper models found' : 'Select a model'}
+              placeholder={whisperModels.length === 0 ? t('settings.noWhisperFound') : t('settings.selectWhisper')}
               disabled={whisperModels.length === 0}
             />
-            <p className="settings-hint">
-              Download more models from whisper.cpp and place them in resources/models.
-            </p>
+            <p className="settings-hint">{t('settings.transcriptionHint')}</p>
           </div>
 
           <div className="settings-card">
-            <h3 className="settings-card-title">Video Language</h3>
+            <h3 className="settings-card-title">{t('settings.videoLanguage')}</h3>
             <RvSelect
               options={VIDEO_LANGUAGE_OPTIONS}
               value={localSettings.videoLanguage}
@@ -258,21 +259,36 @@ export default function Settings(): JSX.Element {
                 })
               }
             />
-            <p className="settings-hint">Choose the language spoken in the video. The summary will be in the same language.</p>
+            <p className="settings-hint">{t('settings.videoLanguageHint')}</p>
           </div>
 
           <div className="settings-card">
-            <h3 className="settings-card-title">Output Folder</h3>
+            <h3 className="settings-card-title">{t('settings.appLanguage')}</h3>
+            <RvSelect
+              options={appLanguageOptions}
+              value={localSettings.appLanguage}
+              onChange={(value) =>
+                setLocalSettings({
+                  ...localSettings,
+                  appLanguage: value as AppLanguage
+                })
+              }
+            />
+            <p className="settings-hint">{t('settings.appLanguageHint')}</p>
+          </div>
+
+          <div className="settings-card">
+            <h3 className="settings-card-title">{t('settings.outputFolder')}</h3>
             <div className="settings-row">
               <input
                 type="text"
                 className="settings-input settings-input-flex"
                 value={localSettings.outputFolder}
                 readOnly
-                placeholder="Select where summaries will be saved"
+                placeholder={t('settings.outputFolderPlaceholder')}
               />
               <button className="btn btn-secondary" onClick={handleSelectFolder} disabled={selectingFolder}>
-                {selectingFolder ? '...' : 'Browse'}
+                {selectingFolder ? '...' : t('settings.browse')}
               </button>
             </div>
             {localSettings.outputFolder && (
@@ -283,10 +299,10 @@ export default function Settings(): JSX.Element {
         </div>
         <div className="panel-footer">
           <button className="btn btn-secondary" onClick={() => setPage('home')}>
-            Back
+            {t('settings.back')}
           </button>
           <button className="btn btn-primary" onClick={handleSave}>
-            {saved ? 'Saved!' : 'Save Settings'}
+            {saved ? t('settings.saved') : t('settings.save')}
           </button>
         </div>
       </div>
