@@ -10,21 +10,21 @@ export default function Help(): JSX.Element {
         </div>
         <div className="panel-body">
           <div className="help-section">
-            <h3>How it works</h3>
-            <p>ResumeVideo extracts audio from your video, transcribes it locally with Whisper.cpp, and generates an AI-powered summary using your chosen provider.</p>
+            <h3>{t('help.howItWorks')}</h3>
+            <p>{t('help.howItWorksDesc')}</p>
           </div>
 
           <div className="help-section">
-            <h3>Requirements</h3>
+            <h3>{t('help.requirements')}</h3>
             <ul>
-              <li>ffmpeg must be installed or bundled</li>
-              <li>Whisper.cpp model files (downloaded automatically on first use)</li>
-              <li>An API key from DeepSeek, OpenAI, or a compatible provider</li>
+              <li>{t('help.reqFfmpeg')}</li>
+              <li>{t('help.reqWhisper')}</li>
+              <li>{t('help.reqApiKey')}</li>
             </ul>
           </div>
 
           <div className="help-section">
-            <h3>Supported Formats</h3>
+            <h3>{t('help.formats')}</h3>
             <p className="help-tags">
               <span className="tag">MP4</span>
               <span className="tag">MKV</span>
@@ -38,26 +38,26 @@ export default function Help(): JSX.Element {
           </div>
 
           <div className="help-section">
-            <h3>Supported Languages</h3>
+            <h3>{t('help.videoLanguages')}</h3>
             <p className="help-tags">
-              <span className="tag">Spanish</span>
-              <span className="tag">English</span>
-              <span className="tag">Portuguese</span>
-              <span className="tag">French</span>
+              <span className="tag">{t('settings.spanish')}</span>
+              <span className="tag">{t('settings.english')}</span>
+              <span className="tag">{t('settings.portuguese')}</span>
+              <span className="tag">{t('settings.french')}</span>
               <span className="tag">German</span>
               <span className="tag">Italian</span>
-              <span className="tag">Auto-detect</span>
+              <span className="tag">{t('help.autoDetect')}</span>
             </p>
           </div>
 
           <div className="help-section">
-            <h3>Where are my summaries saved?</h3>
-            <p>Summaries are saved as Markdown files in the output folder you configure in Settings. You can open them with any text editor.</p>
+            <h3>{t('help.whereSaved')}</h3>
+            <p>{t('help.whereSavedDesc')}</p>
           </div>
 
           <div className="help-section">
-            <h3>Privacy</h3>
-            <p>Your videos and API key never leave your computer. Audio extraction and transcription happen entirely offline. Only the transcript text is sent to your AI provider for summarization.</p>
+            <h3>{t('help.privacy')}</h3>
+            <p>{t('help.privacyDesc')}</p>
           </div>
         </div>
       </div>
