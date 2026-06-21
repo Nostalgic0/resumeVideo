@@ -617,8 +617,8 @@ export const translations: Record<AppLanguage, TranslationDict> = {
 }
 
 export const appLanguageOptions: { value: AppLanguage; label: string }[] = [
-  { value: 'en', label: 'English' },
-  { value: 'es', label: 'Español' },
-  { value: 'pt', label: 'Português' },
-  { value: 'fr', label: 'Français' },
+  { value: 'en', label: '🇺🇸 English' },
+  { value: 'es', label: '🇪🇸 Español' },
+  { value: 'pt', label: '🇵🇹 Português' },
+  { value: 'fr', label: '🇫🇷Français' },
 ]
