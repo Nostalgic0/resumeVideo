@@ -32,6 +32,24 @@ export default function Trim(): JSX.Element {
   const [draggingStart, setDraggingStart] = useState(false)
   const [draggingEnd, setDraggingEnd] = useState(false)
   const [seekDragging, setSeekDragging] = useState(false)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const [hasThumbnail, setHasThumbnail] = useState(false)
+
+  const captureFrame = useCallback(() => {
+    const video = videoRef.current
+    const canvas = canvasRef.current 
+    
+    if (!video || !canvas || video.videoWidth === 0) return
+
+    canvas.width = video.videoWidth
+    canvas.height = video.videoHeight
+    
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+      setHasThumbnail(true) // Flip our switch to True!
+    }
+  }, [])
 
   useEffect(() => {
     if (!videoPath) {
@@ -55,6 +73,8 @@ export default function Trim(): JSX.Element {
     const onPlay = () => setPlaying(true)
     const onPause = () => setPlaying(false)
     const onEnded = () => setPlaying(false)
+    const onLoadedData = () => captureFrame()
+    const onSeeked = () => captureFrame()
 
     video.addEventListener('loadedmetadata', onLoaded)
     video.addEventListener('timeupdate', onTimeUpdate)
@@ -62,6 +82,8 @@ export default function Trim(): JSX.Element {
     video.addEventListener('play', onPlay)
     video.addEventListener('pause', onPause)
     video.addEventListener('ended', onEnded)
+    video.addEventListener('loadeddata', onLoadedData)
+    video.addEventListener('seeked', onSeeked)
 
     return () => {
       video.removeEventListener('loadedmetadata', onLoaded)
@@ -70,8 +92,10 @@ export default function Trim(): JSX.Element {
       video.removeEventListener('play', onPlay)
       video.removeEventListener('pause', onPause)
       video.removeEventListener('ended', onEnded)
+      video.removeEventListener('loadeddata', onLoadedData)
+      video.removeEventListener('seeked', onSeeked)
     }
-  }, [videoPath])
+  }, [videoPath, captureFrame])
 
   const secsFromPct = useCallback((pct: number): number => {
     if (duration <= 0) return 0
@@ -230,6 +254,24 @@ export default function Trim(): JSX.Element {
         </div>
 
         <div className="panel-body trim-body">
+          <div style={{ 
+            textAlign: 'center', 
+            marginBottom: '1rem',
+            display: !playing && hasThumbnail ? 'block' : 'none' // Hidden until ready!
+          }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)', display: 'block', marginBottom: '4px' }}>
+              {t('trim.preview')}
+            </span>
+              <canvas
+                ref={canvasRef}
+                style={{ 
+                  maxHeight: '150px', // Keep it small and neat above the player
+                  borderRadius: '6px',
+                  border: '1px solid var(--border-color)'
+                }}
+              />
+            </div>
+          
           <div className="trim-video-container">
             {videoError ? (
               <div className="trim-video-error">
@@ -239,12 +281,14 @@ export default function Trim(): JSX.Element {
                 </p>
               </div>
             ) : (
+              
               <video
                 ref={videoRef}
                 src={buildVideoSrc(videoPath)}
                 className="trim-video"
                 preload="metadata"
               />
+              
             )}
           </div>
 
