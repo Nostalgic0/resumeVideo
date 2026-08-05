@@ -42,10 +42,13 @@ function Sidebar(): JSX.Element {
         {NAV_ITEMS.map((item) => (
           <button
             key={item.page}
+            type="button"
             className={`sidebar-item ${currentPage === item.page ? 'sidebar-item-active' : ''}`}
             onClick={() => setPage(item.page)}
+            aria-label={navLabels[item.page]}
+            aria-current={currentPage === item.page ? 'page' : undefined}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d={item.icon} />
             </svg>
             <span>{navLabels[item.page]}</span>
@@ -88,8 +91,13 @@ export default function App(): JSX.Element {
 
   return (
     <div className={`app ${isFullScreen ? 'app-focus' : ''}`}>
+      {!isFullScreen && (
+        <a href="#main-content" className="skip-link">
+          Skip to content
+        </a>
+      )}
       {!isFullScreen && <Sidebar />}
-      <main className="app-main">
+      <main id="main-content" className="app-main" tabIndex={-1}>
         <PageContent />
       </main>
     </div>
