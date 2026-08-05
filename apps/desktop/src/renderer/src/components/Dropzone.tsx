@@ -50,6 +50,8 @@ export default function Dropzone({ onFileDrop, text, hint }: DropzoneProps): JSX
   return (
     <div
       className={`dropzone ${isDragOver ? 'dropzone-active' : ''}`}
+      role="region"
+      aria-label={text}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

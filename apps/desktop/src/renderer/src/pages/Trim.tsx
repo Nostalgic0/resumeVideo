@@ -249,8 +249,14 @@ export default function Trim(): JSX.Element {
           </div>
 
           {!videoError && (
-            <button className="trim-play-btn" onClick={togglePlay} title={playing ? t('trim.pause') : t('trim.play')}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+            <button
+              type="button"
+              className="trim-play-btn"
+              onClick={togglePlay}
+              title={playing ? t('trim.pause') : t('trim.play')}
+              aria-label={playing ? t('trim.pause') : t('trim.play')}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 {playing ? (
                   <path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z" />
                 ) : (
